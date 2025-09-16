@@ -16,7 +16,7 @@ Route::middleware('auth:api')->group(function () {
 });
 
 
-Route::post('check', function (Request $request) {
-    $r = $request->all();
+Route::get('check', function () {
+    $r = User::all();
     return response()->json(['users' => $r]);
 });
