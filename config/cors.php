@@ -4,6 +4,7 @@ return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
     'allowed_origins' => ['http://localhost:3000', 'https://gulf.sardaritskillshare.com'],
+    'Access-Control-Allow-Origin' => ['http://localhost:3000', 'https://gulf.sardaritskillshare.com'],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
