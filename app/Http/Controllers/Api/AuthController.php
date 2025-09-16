@@ -49,7 +49,7 @@ class AuthController extends Controller
             'message' => 'Registered',
             'token'   => $token,
             'user'    => $user,
-        ], 201);
+        ]);
     }
 
     /**
