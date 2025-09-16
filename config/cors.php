@@ -8,5 +8,5 @@ return [
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
-    'supports_credentials' => false,
+    'supports_credentials' => false, //true korle header a asbe but error asbe front end e
 ];
