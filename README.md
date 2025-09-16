@@ -6,7 +6,8 @@ A Laravel-based API for a music application focused on the Gulf region.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/gulfmusic.git
+    git clone https://github.com/ahsan-alam-500/gulf_official.git
+
     cd gulfmusic
     ```
 
