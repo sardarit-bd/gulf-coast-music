@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Models\User;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -15,10 +16,6 @@ Route::middleware('auth:api')->group(function () {
 
 
 Route::get('check', function (\Illuminate\Http\Request $r) {
-    try {
-        $p = JWTAuth::parseToken()->getPayload();
-        return ['ok'=>true,'sub'=>$p->get('sub'),'nbf'=>$p->get('nbf'),'exp'=>$p->get('exp')];
-    } catch (\Throwable $e) {
-        return ['ok'=>false,'err'=>$e->getMessage()];
-    }
+    $users = User::all();
+    return response()->json(['users' => $users]);
 });
