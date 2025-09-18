@@ -59,12 +59,10 @@ class AuthController extends Controller
      * POST /api/auth/login
      * Body: email, password
      */
-    public function login(Request $req)
+    public function login(Request $request)
     {
 
-        return response()->json(['message' => $req->all()]);
-
-        $cred = $req->validate([
+        $cred = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
