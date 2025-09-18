@@ -6,8 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Client\Request;
 
 // Route::post('register', [AuthController::class, 'register']);
-Route::post('register', function(Request $req) {
-    return response()->json(['message' => 'This is a placeholder for the register route.']);
+Route::post('register', function (Request $request) {
+    return response()->json(['user' => $request->all()]);
 });
 Route::post('login',    [AuthController::class, 'login']);
 
