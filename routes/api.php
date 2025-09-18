@@ -3,12 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Models\User;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
 
 // Route::post('register', [AuthController::class, 'register']);
-Route::post('register', function (Request $request) {
-    return response()->json(['user' => $request->all()]);
-});
 Route::post('login',    [AuthController::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
@@ -21,4 +18,9 @@ Route::middleware('auth:api')->group(function () {
 Route::get('check', function () {
     $r = User::all();
     return response()->json(['users' => $r]);
+});
+
+
+Route::post('register', function (Request $request) {
+    return response()->json(['user' => $request->all()]);
 });
