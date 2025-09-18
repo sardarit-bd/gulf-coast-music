@@ -61,15 +61,15 @@ class AuthController extends Controller
      */
     public function login(Request $req)
     {
-        $req->validate([
+        $cred = $req->validate([
             'email'    => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'password' => ['required'],
         ]);
 
         // Attempt login via jwt guard
-        // if (!$token = auth('api')->attempt($cred)) {
-        //     return response()->json(['message' => 'Invalid credentials'], 401);
-        // }
+        if (!$token = auth('api')->attempt($cred)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
 
         $user = auth('api')->user();
         if ($user->status !== 'active') {
