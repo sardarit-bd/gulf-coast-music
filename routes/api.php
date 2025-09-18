@@ -7,7 +7,7 @@ use Illuminate\Http\Client\Request;
 
 // Route::post('register', [AuthController::class, 'register']);
 Route::post('register', function(Request $req) {
-    return response()->json(['message' => 'This is a placeholder for the register route.', 'data' => $req->all()]);
+    return response()->json(['message' => 'This is a placeholder for the register route.']);
 });
 Route::post('login',    [AuthController::class, 'login']);
 
