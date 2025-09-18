@@ -83,31 +83,11 @@ public function login(Request $request)
         ], 403);
     }
 
-    // Optional: Include role-based message
-    $roleMessage = '';
-    switch ($user->role) {
-        case 'Artist':
-            $roleMessage = 'Welcome Artist! Access your dashboard and update your profile.';
-            break;
-        case 'Venue':
-            $roleMessage = 'Welcome Venue! Manage your events and profile here.';
-            break;
-        case 'Journalist':
-            $roleMessage = 'Welcome Journalist! You can post news updates and articles.';
-            break;
-        case 'Fan':
-            $roleMessage = 'Welcome Fan! Explore artists and events.';
-            break;
-        default:
-            $roleMessage = 'Welcome!';
-    }
-
     return response()->json([
         'success' => true,
         'message' => 'Logged in successfully',
         'token'   => $token,
-        'user'    => $user,
-        'note'    => $roleMessage
+        'user'    => $user
     ], 200);
 }
 
