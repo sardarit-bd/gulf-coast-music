@@ -56,31 +56,61 @@ class AuthController extends Controller
      * POST /api/auth/login
      * Body: email, password
      */
-    public function login(Request $request)
-    {
+public function login(Request $request)
+{
+    // Validate the request
+    $credentials = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required', 'string', 'min:6'],
+    ]);
 
-        $cred = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required'],
-        ]);
-
-        // Attempt login via jwt guard
-        if (!$token = auth('api')->attempt($cred)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $user = auth('api')->user();
-        if ($user->status !== 'active') {
-            auth('api')->logout();
-            return response()->json(['message' => 'Account is not active'], 403);
-        }
-
+    // Attempt login via JWT guard
+    if (!$token = auth('api')->attempt($credentials)) {
         return response()->json([
-            'message' => 'Logged in',
-            'token'   => $token,
-            'user'    => $user,
-        ]);
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
     }
+
+    $user = auth('api')->user();
+
+    // Check if user is active
+    if ($user->status !== 'active') {
+        auth('api')->logout();
+        return response()->json([
+            'success' => false,
+            'message' => 'Account is not active'
+        ], 403);
+    }
+
+    // Optional: Include role-based message
+    $roleMessage = '';
+    switch ($user->role) {
+        case 'Artist':
+            $roleMessage = 'Welcome Artist! Access your dashboard and update your profile.';
+            break;
+        case 'Venue':
+            $roleMessage = 'Welcome Venue! Manage your events and profile here.';
+            break;
+        case 'Journalist':
+            $roleMessage = 'Welcome Journalist! You can post news updates and articles.';
+            break;
+        case 'Fan':
+            $roleMessage = 'Welcome Fan! Explore artists and events.';
+            break;
+        default:
+            $roleMessage = 'Welcome!';
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Logged in successfully',
+        'token'   => $token,
+        'user'    => $user,
+        'note'    => $roleMessage
+    ], 200);
+}
+
 
     /**
      * GET /api/me  (protected)
