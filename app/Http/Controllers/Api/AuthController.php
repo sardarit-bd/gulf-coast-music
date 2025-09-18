@@ -24,7 +24,7 @@ class AuthController extends Controller
             'name'     => ['required', 'string', 'max:120'],
             'email'    => ['required', 'email', 'max:191', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role'     => ['required', Rule::in(['admin', 'artist', 'venue', 'journalist', 'fan'])],
+            'role'     => ['required']
         ]);
 
         $user = User::create([
