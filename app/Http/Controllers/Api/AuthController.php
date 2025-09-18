@@ -161,6 +161,7 @@ class AuthController extends Controller
 
         try {
             Mail::to($user->email)->send(new VarifyMailer($user->email, $user->name, $role));
+            \Log::info('Role instruction email sent to ' . $user->email);
         } catch (\Throwable $e) {
             \Log::warning('Role instruction email failed: ' . $e->getMessage());
         }
