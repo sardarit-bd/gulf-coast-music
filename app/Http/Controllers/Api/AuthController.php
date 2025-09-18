@@ -36,9 +36,6 @@ class AuthController extends Controller
             'status'   => 'active',
             'remember_token' => Str::random(10),
         ]);
-
-        Mail::to($user->email, $user->name)->send(new VarifyMailer($user->email, $user->name, $user->role));
-
         // Optional: If you use Laravel's email verification
         // $user->sendEmailVerificationNotification();
 
