@@ -61,7 +61,7 @@ class AuthController extends Controller
      */
     public function login(Request $req)
     {
-        $cred = $req->validate([
+        $req->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
