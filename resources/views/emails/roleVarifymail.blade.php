@@ -11,13 +11,13 @@
 
     <p>Thanks for signing up with us as a {{ $role }}.</p>
 
-    @if ($role === 'Artist')
+    @if ($role === 'artist')
         <p>Please email <a href="mailto:thegulfcoastmusic@gmail.com">thegulfcoastmusic@gmail.com</a> to request
             verification as a Gulf Coast Artist.</p>
-    @elseif($role === 'Venue')
+    @elseif($role === 'venue')
         <p>Please email <a href="mailto:thegulfcoastmusic@gmail.com">thegulfcoastmusic@gmail.com</a> to request
             verification as a Gulf Coast Venue.</p>
-    @elseif($role === 'Journalist')
+    @elseif($role === 'journalist')
         <p>Please email <a href="mailto:thegulfcoastmusic@gmail.com">thegulfcoastmusic@gmail.com</a> to request
             verification as a Gulf Coast Journalist.</p>
     @endif
