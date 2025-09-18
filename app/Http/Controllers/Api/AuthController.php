@@ -61,6 +61,9 @@ class AuthController extends Controller
      */
     public function login(Request $req)
     {
+
+        return response()->json(['message' => $req->all()]);
+
         $cred = $req->validate([
             'email'    => ['required', 'email'],
             'password' => ['required'],
