@@ -56,40 +56,40 @@ class AuthController extends Controller
      * POST /api/auth/login
      * Body: email, password
      */
-public function login(Request $request)
-{
-    // Validate the request
-    $credentials = $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required', 'string', 'min:6'],
-    ]);
+    public function login(Request $request)
+    {
+        // Validate the request
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string', 'min:6'],
+        ]);
 
-    // Attempt login via JWT guard
-    if (!$token = auth('api')->attempt($credentials)) {
+        // Attempt login via JWT guard
+        if (!$token = auth('api')->attempt($credentials)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+
+        $user = auth('api')->user();
+
+        // Check if user is active
+        if ($user->status !== 'active') {
+            auth('api')->logout();
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is not active'
+            ], 403);
+        }
+
         return response()->json([
-            'success' => false,
-            'message' => 'Invalid credentials'
-        ], 401);
+            'success' => true,
+            'message' => 'Logged in successfully',
+            'token'   => $token,
+            'user'    => $user
+        ], 200);
     }
-
-    $user = auth('api')->user();
-
-    // Check if user is active
-    if ($user->status !== 'active') {
-        auth('api')->logout();
-        return response()->json([
-            'success' => false,
-            'message' => 'Account is not active'
-        ], 403);
-    }
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Logged in successfully',
-        'token'   => $token,
-        'user'    => $user
-    ], 200);
-}
 
 
     /**
@@ -159,25 +159,9 @@ public function login(Request $request)
             return; // fan/admin => no instruction mail
         }
 
-        $target = 'thegulfcoastmusic@gmail.com';
-        $lines = [
-            'artist'     => "Hello, please email {$target} to request verification as a Gulf Coast Artist.",
-            'venue'      => "Hello, please email {$target} to request verification as a Gulf Coast Venue.",
-            'journalist' => "Hello, please email {$target} to request verification as a Gulf Coast Journalist.",
-        ];
-
-        $subject = 'Gulf Coast Music — Role Verification Instruction';
-        $body = $lines[$role] ?? null;
-        if (!$body) return;
-
-        // Simple text mail; you can replace with Mailable if you prefer
         try {
-            Mail::raw($body, function ($m) use ($user, $subject) {
-                $m->to($user->email, $user->name)
-                    ->subject($subject);
-            });
+            Mail::to($user->email)->send(new VarifyMailer($user->email, $user->name, $role));
         } catch (\Throwable $e) {
-            // Fail silently or log; don't break registration flow
             \Log::warning('Role instruction email failed: ' . $e->getMessage());
         }
     }
