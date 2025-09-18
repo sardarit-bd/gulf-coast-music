@@ -14,7 +14,6 @@ class ArtistController extends Controller
      */
     public function index()
     {
-        return response()->json(['message' => 'Artist index']);
 
         $artist = Auth::user()->artist()->with(['photos', 'songs', 'genres'])->first();
 
