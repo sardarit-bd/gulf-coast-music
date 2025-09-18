@@ -3,8 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Models\User;
+use Illuminate\Http\Client\Request;
 
-Route::post('register', [AuthController::class, 'register']);
+// Route::post('register', [AuthController::class, 'register']);
+Route::post('register', function(Request $req) {
+    return response()->json(['message' => 'This is a placeholder for the register route.', 'data' => $req->all()]);
+});
 Route::post('login',    [AuthController::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
