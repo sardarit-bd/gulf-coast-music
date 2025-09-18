@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\VarifyMailer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -36,6 +37,8 @@ class AuthController extends Controller
             'remember_token' => Str::random(10),
         ]);
 
+        Mail::to($user->email, $user->name)->send(new VarifyMailer($user->email, $user->name, $user->role));
+
         // Optional: If you use Laravel's email verification
         // $user->sendEmailVerificationNotification();
 
@@ -64,9 +67,9 @@ class AuthController extends Controller
         ]);
 
         // Attempt login via jwt guard
-        if (!$token = auth('api')->attempt($cred)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
+        // if (!$token = auth('api')->attempt($cred)) {
+        //     return response()->json(['message' => 'Invalid credentials'], 401);
+        // }
 
         $user = auth('api')->user();
         if ($user->status !== 'active') {
