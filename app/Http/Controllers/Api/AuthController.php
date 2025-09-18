@@ -85,33 +85,32 @@ class AuthController extends Controller
      * GET /api/me  (protected)
      * Header: Authorization: Bearer <token>
      */
-public function me()
-{
-    try {
-        // টোকেন থেকে ইউজার বের করো; টোকেন না থাকলে/ভুল হলে JWTException হবে
-        $user = JWTAuth::parseToken()->authenticate();
+    public function me()
+    {
+        try {
+            // টোকেন থেকে ইউজার বের করো; টোকেন না থাকলে/ভুল হলে JWTException হবে
+            $user = JWTAuth::parseToken()->authenticate();
 
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], 404);
+            }
+
+            // মিনিমাল পে-লোড (বড় রিলেশন সিরিয়ালাইজিং এড়াতে)
+            return response()->json([
+                'id'     => $user->id,
+                'name'   => $user->username ?? $user->name,
+                'email'  => $user->email,
+                'role'   => $user->role,
+                'status' => $user->status,
+            ], 200);
+        } catch (JWTException $e) {
+            // টোকেন মিসিং/ইনভ্যালিড/এক্সপায়ার্ড
+            return response()->json(['message' => 'Unauthorized'], 401);
+        } catch (\Throwable $e) {
+            \Log::error('ME endpoint failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Server error'], 500);
         }
-
-        // মিনিমাল পে-লোড (বড় রিলেশন সিরিয়ালাইজিং এড়াতে)
-        return response()->json([
-            'id'     => $user->id,
-            'name'   => $user->username ?? $user->name,
-            'email'  => $user->email,
-            'role'   => $user->role,
-            'status' => $user->status,
-        ], 200);
-
-    } catch (JWTException $e) {
-        // টোকেন মিসিং/ইনভ্যালিড/এক্সপায়ার্ড
-        return response()->json(['message' => 'Unauthorized'], 401);
-    } catch (\Throwable $e) {
-        \Log::error('ME endpoint failed: '.$e->getMessage());
-        return response()->json(['message' => 'Server error'], 500);
     }
-}
 
 
     /**
