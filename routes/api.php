@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Artist\ArtistController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Models\User;
@@ -12,15 +13,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('me',            [AuthController::class, 'me']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('logout',  [AuthController::class, 'logout']);
+
+
+    //===================================Artist Routes===================================
+
+    Route::prefix('artist')->name('artist.')->group(function () {
+        Route::apiResource('profile', ArtistController::class);
+        // Route::apiResource('photos', ArtistPhotoController::class);
+        // Route::apiResource('songs', ArtistSongController::class);
+        // Route::apiResource('genres', ArtistGenreController::class);
+    });
 });
-
-
-Route::get('check', function () {
-    $r = User::all();
-    return response()->json(['users' => $r]);
-});
-
-
-// Route::post('register', function (Request $request) {
-//     return response()->json(['user' => $request->all()]);
-// });
