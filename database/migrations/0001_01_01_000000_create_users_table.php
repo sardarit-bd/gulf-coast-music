@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->longText('password');
-            $table->enum('role', ['admin', 'artist', 'venue', 'journalist', 'fan'])->default('fan');
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('inactive');
+            $table->enum('role', ['Admin', 'Artist', 'Venue', 'Journalist', 'Fan'])->default('Fan');
+            $table->enum('status', ['Active', 'Inactive', 'Suspended'])->default('Inactive');
             $table->rememberToken();
             $table->timestamps();
         });
