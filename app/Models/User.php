@@ -20,6 +20,7 @@ class User extends Authenticatable implements JWTSubject /*, MustVerifyEmail*/
     public const ROLE_FAN        = 'Fan';
 
     // ---- Fillable ----
+    // ---- Fillable ----
     protected $fillable = [
         'name',
         'email',
