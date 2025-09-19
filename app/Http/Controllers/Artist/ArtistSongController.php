@@ -18,10 +18,17 @@ class ArtistSongController extends Controller
             $songs = Auth::user()->artist->songs;
 
             return response()->json([
-                'data' => $songs
+                'data' => [
+                    'songs' => $songs
+                ],
+                'success' => true,
+                'status' => 200,
+                'message' => 'Songs fetched successfully.',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
+                'data' => [],
+                'success' => false,
                 'error'   => 'Failed to fetch songs.',
                 'message' => $e->getMessage()
             ], 500);
