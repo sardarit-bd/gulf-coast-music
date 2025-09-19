@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Artist;
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -27,8 +28,15 @@ class ArtistController extends Controller
                 ], 404);
             }
 
+            // convert image urls
+            $artist->image_url = $artist->image ? Storage::url($artist->image) : null;
+            $artist->cover_photo_url = $artist->cover_photo ? Storage::url($artist->cover_photo) : null;
+
             return response()->json([
-                'data' => $artist
+                'data' => $artist,
+                'success' => true,
+                'status' => 200,
+                'message' => 'Artist profile fetched successfully.',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -45,21 +53,33 @@ class ArtistController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'bio'  => 'nullable|string',
-                'city' => 'nullable|string|max:255',
+                'name'        => 'required|string|max:255',
+                'bio'         => 'nullable|string',
+                'city'        => 'nullable|string|max:255',
+                'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'cover_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             ]);
 
-            $artist = Artist::create(array_merge($validated, [
-                'user_id' => Auth::id()
-            ]));
+            $data = [
+                'user_id' => Auth::id(),
+                'name'    => $validated['name'],
+                'bio'     => $validated['bio'] ?? null,
+                'city'    => $validated['city'] ?? null,
+            ];
+
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('artist/images', 'public');
+            }
+            if ($request->hasFile('cover_photo')) {
+                $data['cover_photo'] = $request->file('cover_photo')->store('artist/covers', 'public');
+            }
+
+            $artist = Artist::create($data);
 
             return response()->json([
-                'data' => [
-                    'artist' => $artist
-                ],
+                'data'    => $artist,
                 'success' => true,
-                'status' => 201,
+                'status'  => 201,
                 'message' => 'Artist profile created successfully.',
             ], 201);
         } catch (ValidationException $e) {
@@ -82,13 +102,13 @@ class ArtistController extends Controller
     {
         try {
             $artist->load(['photos', 'songs', 'genres']);
+            $artist->image_url = $artist->image ? Storage::url($artist->image) : null;
+            $artist->cover_photo_url = $artist->cover_photo ? Storage::url($artist->cover_photo) : null;
 
             return response()->json([
-                'data' => [
-                    'artist' => $artist
-                ],
+                'data'    => $artist,
                 'success' => true,
-                'status' => 200,
+                'status'  => 200,
                 'message' => 'Artist profile fetched successfully.',
             ], 200);
         } catch (\Exception $e) {
@@ -105,7 +125,6 @@ class ArtistController extends Controller
     public function update(Request $request, Artist $artist)
     {
         try {
-            // Ensure the logged-in user is the owner
             if ($artist->user_id !== Auth::id()) {
                 return response()->json([
                     'error' => 'Unauthorized to update this profile.'
@@ -113,16 +132,36 @@ class ArtistController extends Controller
             }
 
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255',
-                'bio'  => 'nullable|string',
-                'city' => 'nullable|string|max:255',
+                'name'        => 'sometimes|required|string|max:255',
+                'bio'         => 'nullable|string',
+                'city'        => 'nullable|string|max:255',
+                'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'cover_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             ]);
 
-            $artist->update($validated);
+            $artist->fill($validated);
+
+            if ($request->hasFile('image')) {
+                if ($artist->image) {
+                    Storage::disk('public')->delete($artist->image);
+                }
+                $artist->image = $request->file('image')->store('artist/images', 'public');
+            }
+
+            if ($request->hasFile('cover_photo')) {
+                if ($artist->cover_photo) {
+                    Storage::disk('public')->delete($artist->cover_photo);
+                }
+                $artist->cover_photo = $request->file('cover_photo')->store('artist/covers', 'public');
+            }
+
+            $artist->save();
 
             return response()->json([
+                'data'    => $artist,
+                'success' => true,
+                'status'  => 200,
                 'message' => 'Artist profile updated successfully.',
-                'data'    => $artist
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
@@ -143,16 +182,24 @@ class ArtistController extends Controller
     public function destroy(Artist $artist)
     {
         try {
-            // Ensure the logged-in user is the owner
             if ($artist->user_id !== Auth::id()) {
                 return response()->json([
                     'error' => 'Unauthorized to delete this profile.'
                 ], 403);
             }
 
+            if ($artist->image) {
+                Storage::disk('public')->delete($artist->image);
+            }
+            if ($artist->cover_photo) {
+                Storage::disk('public')->delete($artist->cover_photo);
+            }
+
             $artist->delete();
 
             return response()->json([
+                'success' => true,
+                'status'  => 200,
                 'message' => 'Artist profile deleted successfully.'
             ], 200);
         } catch (\Exception $e) {
