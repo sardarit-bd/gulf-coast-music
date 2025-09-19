@@ -16,6 +16,5 @@ Route::middleware('auth:api')->group(function () {
 
 
     //===================================Artist Routes===================================
-
     Route::apiResource('artists', ArtistController::class);
 });
