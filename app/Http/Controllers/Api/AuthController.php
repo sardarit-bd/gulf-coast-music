@@ -108,18 +108,21 @@ class AuthController extends Controller
         if ($user->status !== 'Active') {
             auth('api')->logout();
             return response()->json([
-                'data'=> [],
+                'data' => [],
                 'success' => false,
-                'status' => false,
+                'status' => 401,
                 'message' => 'Account is not active'
-            ], 403);
+            ], 401);
         }
 
         return response()->json([
+            'data' => [
+                'token'   => $token,
+                'user'    => $user
+            ],
+            'status' => 200,
             'success' => true,
             'message' => 'Logged in successfully',
-            'token'   => $token,
-            'user'    => $user
         ], 200);
     }
 
