@@ -105,7 +105,7 @@ class AuthController extends Controller
         $user = auth('api')->user();
 
         // Check if user is active
-        if ($user->status !== 'active') {
+        if ($user->status !== 'Active') {
             auth('api')->logout();
             return response()->json([
                 'success' => false,
