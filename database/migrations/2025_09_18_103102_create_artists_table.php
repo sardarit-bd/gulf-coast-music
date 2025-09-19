@@ -14,6 +14,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('restrict')->onUpdate('cascade');
             $table->string('name');
             $table->string('image')->nullable(); // profile picture
+            $table->string('cover_photo')->nullable(); // new field for cover photo
             $table->text('bio')->nullable();
             $table->string('city')->nullable();
             $table->timestamps();

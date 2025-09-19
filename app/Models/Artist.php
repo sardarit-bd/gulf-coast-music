@@ -13,6 +13,7 @@ class Artist extends Model
         'user_id',
         'name',
         'image',
+        'cover_photo',
         'bio',
         'city',
     ];
