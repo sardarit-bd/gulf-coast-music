@@ -84,7 +84,12 @@ class ArtistController extends Controller
             $artist->load(['photos', 'songs', 'genres']);
 
             return response()->json([
-                'data' => $artist
+                'data' => [
+                    'artist' => $artist
+                ],
+                'success' => true,
+                'status' => 200,
+                'message' => 'Artist profile fetched successfully.',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
