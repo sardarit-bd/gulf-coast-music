@@ -55,8 +55,12 @@ class ArtistController extends Controller
             ]));
 
             return response()->json([
+                'data' => [
+                    'artist' => $artist
+                ],
+                'success' => true,
+                'status' => 201,
                 'message' => 'Artist profile created successfully.',
-                'data'    => $artist
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
