@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/f27c1d5/gulf.sardaritskillshare.com/
+    - /bin/cp -R * $DEPLOYPATH
