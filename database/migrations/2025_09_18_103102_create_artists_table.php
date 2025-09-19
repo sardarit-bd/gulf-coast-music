@@ -28,13 +28,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('artist_genre', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('artist_id')->constrained()->onDelete('cascade');
-            $table->foreignId('genre_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-        });
-
         // Artist Photos (up to 5 optional but handled in validation)
         Schema::create('artist_photos', function (Blueprint $table) {
             $table->id();
