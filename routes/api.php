@@ -17,6 +17,7 @@ Route::middleware('auth:api')->group(function () {
 
     //===================================Artist Routes===================================
 
+    Route::apiResource('artists', ArtistController::class);
     Route::prefix('artist')->name('artist.')->group(function () {
         Route::apiResource('profile', ArtistController::class);
         // Route::apiResource('photos', ArtistPhotoController::class);
