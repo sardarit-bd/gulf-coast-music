@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Artist\ArtistController;
+use App\Http\Controllers\Artist\ArtistPhotoController;
+use App\Http\Controllers\ArtistGenreController;
+use App\Http\Controllers\ArtistSongController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Models\User;
@@ -17,4 +20,8 @@ Route::middleware('auth:api')->group(function () {
 
     //===================================Artist Routes===================================
     Route::apiResource('artists', ArtistController::class);
+    Route::apiResource('photos', ArtistPhotoController::class);
+    Route::apiResource('songs', ArtistSongController::class);
+    Route::apiResource('genres', ArtistGenreController::class);
+
 });
