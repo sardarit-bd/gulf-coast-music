@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Artist;
 
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -132,10 +133,16 @@ class ArtistController extends Controller
 
             $validated = $request->validate([
                 'name'        => 'sometimes|required|string|max:255',
+                'genre'      => 'nullable|string',
                 'bio'         => 'nullable|string',
                 'city'        => 'nullable|string|max:255',
                 'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'cover_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            ]);
+
+            User::where('id', $artist->user_id)->update([
+                'name' => $request->name ?? $artist->name,
+                'email' => $artist->email,
             ]);
 
             $artist->fill($validated);
