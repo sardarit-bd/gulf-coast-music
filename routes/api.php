@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Artist\ArtistController;
 use App\Http\Controllers\Artist\ArtistPhotoController;
-use App\Http\Controllers\ArtistGenreController;
-use App\Http\Controllers\ArtistSongController;
+use App\Http\Controllers\Artist\ArtistGenreController;
+use App\Http\Controllers\Artist\ArtistSongController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Models\User;
