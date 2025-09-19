@@ -94,7 +94,6 @@ class ArtistController extends Controller
             ], 500);
         }
     }
-
     /**
      * Display the specified artist.
      */
