@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ArtistController extends Controller
 {
@@ -51,7 +52,7 @@ class ArtistController extends Controller
             return response()->json([
                 'message' => 'Artist profile created successfully.'
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             // Validation error handle
             return response()->json([
                 'error'   => 'Validation failed',
