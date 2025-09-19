@@ -19,7 +19,7 @@ class ArtistController extends Controller
         try {
             $artist = Auth::user()
                 ->artist()
-                ->with(['photos', 'songs', 'genres'])
+                ->with(['photos', 'songs'])
                 ->first();
 
             if (!$artist) {
