@@ -185,7 +185,7 @@ class AuthController extends Controller
     private function sendRoleInstructionEmail(User $user): void
     {
         $role = $user->role;
-        if (!in_array($role, ['artist', 'venue', 'journalist'])) {
+        if (!in_array($role, ['Artist', 'Venue', 'Journalist'])) {
             return; // fan/admin => no instruction mail
         }
 
