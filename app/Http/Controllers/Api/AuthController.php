@@ -112,7 +112,7 @@ class AuthController extends Controller
                 'success' => false,
                 'status' => 401,
                 'message' => 'Account is not active yet please contact admin'
-            ], 401);
+            ], 200);
         }
 
         return response()->json([
