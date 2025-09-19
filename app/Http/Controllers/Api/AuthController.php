@@ -111,7 +111,7 @@ class AuthController extends Controller
                 'data' => [],
                 'success' => false,
                 'status' => 401,
-                'message' => 'Account created but ' . $user->status
+                'message' => 'Account is not active yet please contact admin'
             ], 401);
         }
 
