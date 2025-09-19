@@ -41,7 +41,7 @@ class ArtistController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'bio'  => 'nullable|string',
-                'city' => 'nullable|string|max:255', // আগে 'url' ছিল, city তো url না
+                'city' => 'nullable|string|max:255',
             ]);
 
             Artist::create(array_merge($validated, [
