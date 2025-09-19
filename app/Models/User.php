@@ -13,11 +13,11 @@ class User extends Authenticatable implements JWTSubject /*, MustVerifyEmail*/
     use HasFactory, Notifiable;
 
     // ---- Role constants (single-role design) ----
-    public const ROLE_ADMIN      = 'admin';
-    public const ROLE_ARTIST     = 'artist';
-    public const ROLE_VENUE      = 'venue';
-    public const ROLE_JOURNALIST = 'journalist';
-    public const ROLE_FAN        = 'fan';
+    public const ROLE_ADMIN      = 'Admin';
+    public const ROLE_ARTIST     = 'Artist';
+    public const ROLE_VENUE      = 'Venue';
+    public const ROLE_JOURNALIST = 'Journalist';
+    public const ROLE_FAN        = 'Fan';
 
     // ---- Fillable ----
     protected $fillable = [
