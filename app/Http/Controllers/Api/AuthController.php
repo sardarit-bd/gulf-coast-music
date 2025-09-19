@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Mail\VarifyMailer;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 
@@ -21,36 +23,64 @@ class AuthController extends Controller
      */
     public function register(Request $req)
     {
-        $data = $req->validate([
-            'name'     => ['required', 'string', 'max:120'],
-            'email'    => ['required', 'email', 'max:191', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-            'role'     => ['required']
-        ]);
+        try {
+            $data = $req->validate([
+                'name'     => ['required', 'string', 'max:120'],
+                'email'    => ['required', 'email', 'max:191', 'unique:users,email'],
+                'password' => ['required', 'string', 'min:8'],
+                'role'     => ['required']
+            ]);
 
-        $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role'     => $data['role'],
-            'status'   => 'active',
-            'remember_token' => Str::random(10),
-        ]);
-        // Optional: If you use Laravel's email verification
-        // $user->sendEmailVerificationNotification();
+            $user = User::create([
+                'name'           => $data['name'],
+                'email'          => $data['email'],
+                'password'       => Hash::make($data['password']),
+                'role'           => $data['role'],
+                'status'         => 'active',
+                'remember_token' => Str::random(10),
+            ]);
 
-        // Send role instruction email if role is artist/venue/journalist (doc requirement)
-        $this->sendRoleInstructionEmail($user);
+            // Optional: If you use Laravel's email verification
+            // $user->sendEmailVerificationNotification();
 
-        // Issue JWT token
-        $token = JWTAuth::fromUser($user);
+            // Send role instruction email if role is artist/venue/journalist (doc requirement)
+            $this->sendRoleInstructionEmail($user);
 
-        return response()->json([
-            'message' => 'Registered',
-            'token'   => $token,
-            'user'    => $user,
-        ]);
+            // Issue JWT token
+            $token = JWTAuth::fromUser($user);
+
+            return response()->json([
+                'message' => 'Registered',
+                'token'   => $token,
+                'user'    => $user,
+            ], 201);
+        } catch (ValidationException $e) {
+            // Validation errors → 422
+            return response()->json([
+                'error'   => 'Validation failed',
+                'message' => $e->errors(),
+            ], 422);
+        } catch (QueryException $e) {
+            // Database-related error → 400/500
+            return response()->json([
+                'error'   => 'Database error',
+                'message' => $e->getMessage(),
+            ], 500);
+        } catch (JWTException $e) {
+            // JWT issue → 500
+            return response()->json([
+                'error'   => 'Token creation failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            // Any other exception → 500
+            return response()->json([
+                'error'   => 'An unexpected error occurred',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     /**
      * POST /api/auth/login
