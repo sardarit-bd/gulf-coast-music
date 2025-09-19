@@ -143,18 +143,33 @@ class AuthController extends Controller
 
             // মিনিমাল পে-লোড (বড় রিলেশন সিরিয়ালাইজিং এড়াতে)
             return response()->json([
-                'id'     => $user->id,
-                'name'   => $user->username ?? $user->name,
-                'email'  => $user->email,
-                'role'   => $user->role,
-                'status' => $user->status,
+                'data' => [
+                    'id'     => $user->id,
+                    'name'   => $user->username ?? $user->name,
+                    'email'  => $user->email,
+                    'role'   => $user->role,
+                    'status' => $user->status,
+                ],
+                'success' => true,
+                'status' => 200,
+                'message' => 'User fetched successfully',
             ], 200);
         } catch (JWTException $e) {
             // টোকেন মিসিং/ইনভ্যালিড/এক্সপায়ার্ড
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json([
+                'data' => [],
+                'success' => false,
+                'status' => 401,
+                'message' => 'Unauthorized'
+            ], 401);
         } catch (\Throwable $e) {
             \Log::error('ME endpoint failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Server error'], 500);
+            return response()->json([
+                'data' => [],
+                'success' => false,
+                'status' => 500,
+                'message' => 'Server error'
+            ], 500);
         }
     }
 
