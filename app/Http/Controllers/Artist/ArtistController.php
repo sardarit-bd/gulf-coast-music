@@ -140,9 +140,9 @@ class ArtistController extends Controller
                 'cover_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             ]);
 
-            User::where('id', $artist->user_id)->update([
+            User::where('email', $request->email)->update([
                 'name' => $request->name ?? $artist->name,
-                'email' => $artist->email,
+                'email' => $request->email ?? $artist->email,
             ]);
 
             $artist->fill($validated);
