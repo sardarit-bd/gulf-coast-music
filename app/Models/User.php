@@ -34,9 +34,17 @@ class User extends Authenticatable implements JWTSubject /*, MustVerifyEmail*/
     protected $hidden = ['password', 'remember_token'];
 
     // ---- relation to artist ----
+    // ---- relation to artist ----
     public function artist()
     {
         return $this->hasOne(Artist::class);
+    }
+
+    // ---- relation to Journalist ----
+    // ---- relation to Journalist ----
+    public function journalist()
+    {
+        return $this->hasOne(Journalist::class);
     }
 
     protected function casts(): array
