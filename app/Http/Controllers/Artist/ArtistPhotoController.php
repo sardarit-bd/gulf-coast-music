@@ -11,16 +11,38 @@ class ArtistPhotoController extends Controller
 {
     public function index()
     {
-        $photos = Auth::user()->artist->photos;
-        return response()->json([
-            'data' => [
-                'photos' => $photos
-            ],
-            'success' => true,
-            'status' => 200,
-            'message' => 'Photos fetched successfully.'
-        ], 200);
+        try {
+            $artist = Auth::user()->artist;
+
+            if (!$artist) {
+                return response()->json([
+                    'error'   => 'Artist profile not found.',
+                    'success' => false,
+                    'status'  => 404,
+                    'message' => 'Please create an artist profile first.'
+                ], 404);
+            }
+
+            $photos = $artist->photos;
+
+            return response()->json([
+                'data' => [
+                    'photos' => $photos
+                ],
+                'success' => true,
+                'status' => 200,
+                'message' => 'Photos fetched successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error'   => 'An error occurred while fetching photos.',
+                'success' => false,
+                'status'  => 500,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
+
 
     public function store(Request $request)
     {
