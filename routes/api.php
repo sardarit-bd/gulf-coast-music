@@ -7,6 +7,7 @@ use App\Http\Controllers\Artist\ArtistSongController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Journalist\JournalistController;
+use App\Http\Controllers\Journalist\NewsController;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -26,5 +27,6 @@ Route::middleware('auth:api')->group(function () {
 
     //===================================Journalist Routes===================================
     Route::apiResource('journalists', JournalistController::class);
+    Route::apiResource('news', NewsController::class);
 
 });
