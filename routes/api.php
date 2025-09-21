@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Journalist\JournalistController;
 use App\Http\Controllers\Journalist\NewsController;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Garissman\Printify\Facades\Printify;
+use App\Http\Controllers\Admin\PrintifyController;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login',    [AuthController::class, 'login']);
@@ -59,5 +57,22 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('venues', VenueController::class);
     //===================================Event Routes===================================
     Route::apiResource('events', EventController::class);
+
+    //==================================================================================
+    //===================================Printify Routes================================
+    //==================================================================================
+    // Shop
+Route::get('/printify/shop', [PrintifyController::class, 'getShop']);
+
+// Products
+Route::get('/printify/products', [PrintifyController::class, 'getProducts']);
+Route::post('/printify/products', [PrintifyController::class, 'addProduct']);
+
+// Orders
+Route::get('/printify/orders', [PrintifyController::class, 'getOrders']);
+
+
+
+
 
 });
