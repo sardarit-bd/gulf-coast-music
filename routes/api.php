@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\ProfileAcivitionController;
 use App\Http\Controllers\Artist\ArtistController;
 use App\Http\Controllers\Artist\ArtistPhotoController;
-use App\Http\Controllers\Artist\ArtistGenreController;
 use App\Http\Controllers\Artist\ArtistSongController;
 use App\Http\Controllers\Event\EventController;
 use App\Http\Controllers\Journalist\NewsPhotoController;
