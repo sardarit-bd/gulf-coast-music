@@ -6,6 +6,7 @@ use App\Http\Controllers\Artist\ArtistGenreController;
 use App\Http\Controllers\Artist\ArtistSongController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Journalist\JournalistController;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,8 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('artists', ArtistController::class);
     Route::apiResource('photos', ArtistPhotoController::class);
     Route::apiResource('songs', ArtistSongController::class);
-    Route::apiResource('genres', ArtistGenreController::class);
+
+    //===================================Journalist Routes===================================
+    Route::apiResource('journalists', JournalistController::class);
 
 });

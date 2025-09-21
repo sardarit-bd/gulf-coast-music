@@ -22,4 +22,8 @@ class News extends Model
     {
         return $this->belongsTo(Journalist::class);
     }
+    public function newsPhotos()
+    {
+        return $this->hasMany(NewsPhoto::class);
+    }
 }

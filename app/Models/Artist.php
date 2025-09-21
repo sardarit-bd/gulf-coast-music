@@ -36,10 +36,4 @@ class Artist extends Model
     {
         return $this->hasMany(ArtistSong::class);
     }
-
-    // 🔗 Relation: Artist belongs to many genres
-    public function genres()
-    {
-        return $this->belongsToMany(Genre::class, 'artist_genre');
-    }
 }
