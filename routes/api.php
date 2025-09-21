@@ -29,11 +29,11 @@ Route::middleware('auth:api')->group(function () {
     //===================================Journalist Routes===================================
     Route::apiResource('journalists', JournalistController::class);
     Route::apiResource('news', NewsController::class);
-    Route::prefix('news/{news}')->group(function () {
-    Route::get('photos', [NewsPhotoController::class, 'index']);   // list photos for a news
-    Route::post('photos', [NewsPhotoController::class, 'store']);  // upload photos
+    Route::prefix('news/{news}/photos')->group(function () {
+        Route::get('/', [NewsPhotoController::class, 'index']);
+        Route::post('/', [NewsPhotoController::class, 'store']);
+        Route::patch('{photo}', [NewsPhotoController::class, 'update']);
+        Route::delete('{photo}', [NewsPhotoController::class, 'destroy']);
     });
-    Route::patch('photos/{photo}', [NewsPhotoController::class, 'update']); // update alt text
-    Route::delete('photos/{photo}', [NewsPhotoController::class, 'destroy']); // delete photo
 
 });
