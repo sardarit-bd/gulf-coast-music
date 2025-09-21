@@ -36,7 +36,7 @@ class AuthController extends Controller
                 'email'          => $data['email'],
                 'password'       => Hash::make($data['password']),
                 'role'           => $data['role'],
-                'status'         => 'active',
+                'status'         => 'Inactive',
                 'remember_token' => Str::random(10),
             ]);
 

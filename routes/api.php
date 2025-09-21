@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ProfileAcivitionController;
 use App\Http\Controllers\Artist\ArtistController;
 use App\Http\Controllers\Artist\ArtistPhotoController;
 use App\Http\Controllers\Artist\ArtistGenreController;
@@ -23,6 +24,21 @@ Route::middleware('auth:api')->group(function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('logout',  [AuthController::class, 'logout']);
 
+    //==================================================================================
+    //===================================Admin Routes===================================
+    //==================================================================================
+
+    Route::get('user/pending',[ProfileAcivitionController::class,'pendingProfiles']);
+
+
+
+
+
+
+
+
+
+
 
     //===================================Artist Routes===================================
     Route::apiResource('artists', ArtistController::class);
@@ -43,12 +59,5 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('venues', VenueController::class);
     //===================================Event Routes===================================
     Route::apiResource('events', EventController::class);
-
-
-
-//test printify
-    Route::get('/myprint', function () {
-        return Printify::catalog()->all();
-    });
 
 });
