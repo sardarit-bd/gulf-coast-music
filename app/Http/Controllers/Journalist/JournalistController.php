@@ -64,7 +64,7 @@ class JournalistController extends Controller
     public function show(Journalist $journalist)
     {
         return response()->json([
-            'data' => $journalist,
+            'data' => $journalist->load('user'),
             'success' => true,
             'status' => 200,
             'message' => 'Journalist fetched successfully.',
