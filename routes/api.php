@@ -46,16 +46,9 @@ Route::middleware('auth:api')->group(function () {
 
 
 
-
-
-
-
-
-
-
 //test printify
-    Route::get('/myprint', function (Request $request) {
-        return Printify::shops()->all();
+    Route::get('/myprint', function () {
+        return Printify::catalog()->all();
     });
 
 });
