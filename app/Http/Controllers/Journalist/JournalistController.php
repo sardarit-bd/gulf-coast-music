@@ -29,6 +29,8 @@ class JournalistController extends Controller
             'image' => 'nullable|string|max:255',
         ]);
 
+        $validated['image'] = url('public/pre_images/annonimouse_user.png');
+
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('journalist/images', 'public');
         }
