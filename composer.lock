@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "90bdce8a510ec1d82fe071872f42eec5",
+    "content-hash": "5e97309bf4518a80f545d2c8e459e026",
     "packages": [
         {
             "name": "brick/math",
@@ -579,6 +579,58 @@
                 }
             ],
             "time": "2023-10-12T05:21:21+00:00"
+        },
+        {
+            "name": "garissman/printify",
+            "version": "0.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/garissman/printify.git",
+                "reference": "97087640b6ac113ee46920c4f2de0c5ec3834368"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/garissman/printify/zipball/97087640b6ac113ee46920c4f2de0c5ec3834368",
+                "reference": "97087640b6ac113ee46920c4f2de0c5ec3834368",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.8"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.1"
+            },
+            "type": "project",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Garissman\\Printify\\PrintifyServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Garissman\\Printify\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ari Morales",
+                    "email": "arimoralesjordan@gmail.com"
+                }
+            ],
+            "description": "Printify PHP SDK",
+            "support": {
+                "source": "https://github.com/garissman/printify/tree/0.0.5"
+            },
+            "time": "2024-05-18T06:01:55+00:00"
         },
         {
             "name": "graham-campbell/result-type",
