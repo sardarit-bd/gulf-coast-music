@@ -29,6 +29,7 @@ Route::middleware('auth:api')->group(function () {
     //==================================================================================
 
     Route::get('user/pending',[ProfileAcivitionController::class,'pendingProfiles']);
+    Route::post('user/activate/{id}',[ProfileAcivitionController::class,'activateProfile']);
 
 
 
