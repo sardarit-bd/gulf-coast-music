@@ -47,6 +47,13 @@ class User extends Authenticatable implements JWTSubject /*, MustVerifyEmail*/
         return $this->hasOne(Journalist::class);
     }
 
+    // ---- relation to Venue ----
+    // ---- relation to Venue ----
+    public function venue()
+    {
+        return $this->hasOne(Venue::class);
+    }
+
     protected function casts(): array
     {
         return [

@@ -4,7 +4,9 @@ use App\Http\Controllers\Artist\ArtistController;
 use App\Http\Controllers\Artist\ArtistPhotoController;
 use App\Http\Controllers\Artist\ArtistGenreController;
 use App\Http\Controllers\Artist\ArtistSongController;
+use App\Http\Controllers\Event\EventController;
 use App\Http\Controllers\Journalist\NewsPhotoController;
+use App\Http\Controllers\Venue\VenueController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Journalist\JournalistController;
@@ -35,5 +37,10 @@ Route::middleware('auth:api')->group(function () {
         Route::patch('{photo}', [NewsPhotoController::class, 'update']);
         Route::delete('{photo}', [NewsPhotoController::class, 'destroy']);
     });
+
+    //===================================Venue Routes===================================
+    Route::apiResource('venues', VenueController::class);
+    //===================================Event Routes===================================
+    Route::apiResource('events', EventController::class);
 
 });
