@@ -148,12 +148,11 @@ public function update(Request $request, $userId)
         ]);
 
         // Update user info
-        $user = User::where('id', $artist->user_id)->update([
+        User::where('id', $artist->user_id)->update([
             'name'  => $request->name ?? $artist->name,
             'email' => $request->email ?? $artist->email,
         ]);
 
-        $validated['email'] = $request->email ?? $artist->user->email;
 
         $artist->fill($validated);
 
