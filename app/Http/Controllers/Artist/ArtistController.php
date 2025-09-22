@@ -123,7 +123,7 @@ class ArtistController extends Controller
     /**
      * Update the specified artist profile.
      */
-public function update(Request $request, $id)
+public function updateProfile(Request $request, $id)
 {
     $artist = Artist::with('user')->findOrFail($id); // lookup by artist.id
 
