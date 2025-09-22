@@ -156,7 +156,7 @@ public function update(Request $request, $id)
 
         unset($validated['email']);
         // Fill artist fields
-        $artist->fill($validated);
+        // $artist->fill($validated);
 
 
 
@@ -174,7 +174,7 @@ public function update(Request $request, $id)
                     'message' =>"successfully updated"
                 ], 200);
 
-        $artist->save();
+        $artist->save($validated);
 
         // Add full URLs
         $artist->refresh(); // refresh model to get latest relation data
