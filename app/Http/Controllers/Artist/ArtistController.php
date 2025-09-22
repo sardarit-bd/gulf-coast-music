@@ -149,11 +149,6 @@ public function update(Request $request, $userId)
             'cover_photo' => 'nullable|string',        // base64
         ]);
 
-        return response()->json([
-                'error'   => 'An error occurred while updating the artist profile.',
-                'message' => $validated,
-            ], 200);
-
         // Update user info
         if (isset($validated['name']) || isset($validated['email'])) {
             $artist->user->update([
@@ -161,6 +156,11 @@ public function update(Request $request, $userId)
                 'email' => $validated['email'] ?? $artist->user->email,
             ]);
         }
+
+            return response()->json([
+                'error'   => 'An error occurred while updating the artist profile.',
+                'message' => $validated,
+            ], 200);
 
         // Fill Artist info
         $artist->fill($validated);
