@@ -29,6 +29,8 @@ class ArtistController extends Controller
                 ], 404);
             }
 
+                  $artist->email = $artist->user->email;
+
             // convert image urls
             $artist->image_url = $artist->image ? url('public/'.Storage::url($artist->image)) : null;
             $artist->cover_photo_url = $artist->cover_photo ? url('public/'.Storage::url($artist->cover_photo)) : null;
