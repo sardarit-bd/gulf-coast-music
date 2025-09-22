@@ -126,7 +126,7 @@ class ArtistController extends Controller
 public function update(Request $request, $id)
 {
     // Fetch artist with user
-    $artist = Artist::with('user')->where('user_id', $id)->first();
+    $artist = Artist::with('user')->where('user_id', $id)->firstOrFail();
 
     try {
         // Ownership check
