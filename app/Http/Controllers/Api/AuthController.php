@@ -140,14 +140,12 @@ public function login(Request $request)
     public function me()
     {
         try {
-            // টোকেন থেকে ইউজার বের করো; টোকেন না থাকলে/ভুল হলে JWTException হবে
             $user = JWTAuth::parseToken()->authenticate();
 
             if (!$user) {
                 return response()->json(['message' => 'User not found'], 404);
             }
 
-            // মিনিমাল পে-লোড (বড় রিলেশন সিরিয়ালাইজিং এড়াতে)
             return response()->json([
                 'data' => [
                     'id'     => $user->id,
