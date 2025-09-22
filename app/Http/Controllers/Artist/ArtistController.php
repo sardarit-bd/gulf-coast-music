@@ -151,12 +151,10 @@ public function updateProfile(Request $request, $id)
         // return response()->json(['validated' => $validated]);
 
         // Update user info (from relation)
-        if (isset($validated['name']) || isset($validated['email'])) {
-            $artist->user->update([
-                'name'  => $validated['name'] ?? $artist->user->name,
-                'email' => $validated['email'] ?? $artist->user->email,
-            ]);
-        }
+        User::where('id', $artist->user_id)->update([
+            'email' => $request->input('email'),
+            'name'  => $request->input('name'),
+        ]);
 
         unset($validated['email']);
 
