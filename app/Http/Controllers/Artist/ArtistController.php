@@ -126,7 +126,7 @@ class ArtistController extends Controller
 
 public function updateProfile(Request $request, $id)
 {
-    $artist = Artist::with('user')->findOrFail($id); // lookup by artist.id
+    $artist = Artist::findOrFail($id); // lookup by artist.id
 
     // Ownership check
     if ($artist->user_id !== Auth::id()) {
@@ -138,7 +138,6 @@ public function updateProfile(Request $request, $id)
     // Validator instance
     $validator = Validator::make($request->all(), [
         'name'        => 'sometimes|required|string|max:255',
-        'email'       => 'sometimes|required|email|max:255',
         'genre'       => 'nullable|string',
         'bio'         => 'nullable|string',
         'city'        => 'nullable|string|max:255',
@@ -151,19 +150,11 @@ public function updateProfile(Request $request, $id)
         return response()->json([
             'error'   => 'Validation failed',
             'message' => $validator->errors(),
-        ], 422);
+        ], 200);
     }
 
     // Validated data
     $validated = $validator->validated();
-
-    // ✅ Update user info (from relation)
-    if (isset($validated['name']) || isset($validated['email'])) {
-        $artist->user->update([
-            'name'  => $validated['name'] ?? $artist->user->name,
-            'email' => $validated['email'] ?? $artist->user->email,
-        ]);
-    }
 
     // Remove email from artist table fields
     unset($validated['email']);
