@@ -86,7 +86,8 @@ class AuthController extends Controller
      * Body: email, password
      */
 public function login(Request $request)
-{     try {
+{
+     try {
         // ✅ Validate request
         $credentials = $request->validate([
             'email'    => ['required', 'email'],
@@ -94,7 +95,7 @@ public function login(Request $request)
         ]);
 
         // ✅ Try login
-        if (!$token = auth('api')->attempt($credentials)) {
+        if (!$token = auth()->attempt($credentials)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid credentials',
