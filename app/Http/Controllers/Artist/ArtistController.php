@@ -127,6 +127,11 @@ public function update(Request $request, $id)
 {
     $artist = Artist::where('user_id', $id)->firstOrFail(); // ensure artist exists
 
+
+
+    try {
+
+
     if (!$artist) {
                 return response()->json([
                     'message' => 'Artist profile not found.'
@@ -137,7 +142,6 @@ public function update(Request $request, $id)
                 ], 200);
     }
 
-    try {
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
