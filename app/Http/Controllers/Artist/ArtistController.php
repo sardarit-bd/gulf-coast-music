@@ -148,14 +148,13 @@ public function update(Request $request, $id)
 
         // Update user info
         if (isset($validated['name']) || isset($validated['email'])) {
-            User::where('id', $artist->user_id)->update([
+            $artist->user()->update([
                 'name'  => $validated['name'] ?? $artist->user->name,
                 'email' => $validated['email'] ?? $artist->user->email,
             ]);
         }
 
         unset($validated['email']);
-
         // Fill artist fields
         $artist->fill($validated);
 
@@ -172,7 +171,7 @@ public function update(Request $request, $id)
         $artist->save();
 
         // Add full URLs
-        $artist->refresh();
+        $artist->refresh(); // refresh model to get latest relation data
         $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
         $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
 
@@ -195,7 +194,6 @@ public function update(Request $request, $id)
         ], 500);
     }
 }
-
 
 
 /**
