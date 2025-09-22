@@ -128,9 +128,13 @@ public function update(Request $request, $id)
     $artist = Artist::where('user_id', $id)->firstOrFail(); // ensure artist exists
 
     if (!$artist) {
-        return response()->json([
-            'message' => 'Artist profile not found.'
-        ], 404);
+                return response()->json([
+                    'message' => 'Artist profile not found.'
+                ], 404);
+    }else{
+                return response()->json([
+                    'message' => 'Artist profile found.'
+                ], 404);
     }
 
     try {
