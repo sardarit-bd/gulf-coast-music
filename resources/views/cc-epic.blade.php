@@ -15,6 +15,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            transition: all 0.5s ease;
         }
 
         #output {
@@ -39,6 +40,12 @@
             75% {
                 opacity: 0;
             }
+        }
+
+        /* New theme after 3s */
+        .theme2 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
         }
     </style>
 </head>
@@ -72,11 +79,16 @@
                 span.classList.add('flash');
                 output.appendChild(span);
                 i++;
-                setTimeout(printLine, 300); // delay for epic animation
+                setTimeout(printLine, 300); // line by line animation
             }
         }
 
         printLine();
+
+        // Change theme after 3 seconds
+        setTimeout(() => {
+            document.body.classList.add('theme2');
+        }, 3000);
     </script>
 </body>
 
