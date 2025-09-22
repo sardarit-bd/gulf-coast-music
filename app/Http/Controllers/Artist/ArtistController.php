@@ -122,65 +122,99 @@ class ArtistController extends Controller
     /**
      * Update the specified artist profile.
      */
-    public function update(Request $request, Artist $artist)
-    {
-        try {
-            if ($artist->user_id !== Auth::id()) {
-                return response()->json([
-                    'error' => 'Unauthorized to update this profile.'
-                ], 403);
-            }
-
-            $validated = $request->validate([
-                'name'        => 'sometimes|required|string|max:255',
-                'genre'      => 'nullable|string',
-                'bio'         => 'nullable|string',
-                'city'        => 'nullable|string|max:255',
-                'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-                'cover_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
-            ]);
-
-            User::where('email', $request->email)->update([
-                'name' => $request->name ?? $artist->name,
-                'email' => $request->email ?? $artist->email,
-            ]);
-
-            $artist->fill($validated);
-
-            if ($request->hasFile('image')) {
-                if ($artist->image) {
-                    Storage::disk('public')->delete($artist->image);
-                }
-                $artist->image = $request->file('image')->store('artist/images', 'public');
-            }
-
-            if ($request->hasFile('cover_photo')) {
-                if ($artist->cover_photo) {
-                    Storage::disk('public')->delete($artist->cover_photo);
-                }
-                $artist->cover_photo = $request->file('cover_photo')->store('artist/covers', 'public');
-            }
-
-            $artist->save();
-
+public function update(Request $request, Artist $artist)
+{
+    try {
+        if ($artist->user_id !== Auth::id()) {
             return response()->json([
-                'data'    => $artist,
-                'success' => true,
-                'status'  => 200,
-                'message' => 'Artist profile updated successfully.',
-            ], 200);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'error'   => 'Validation failed',
-                'message' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'An error occurred while updating the artist profile.',
-                'message' => $e->getMessage(),
-            ], 500);
+                'error' => 'Unauthorized to update this profile.'
+            ], 403);
         }
+
+        $validated = $request->validate([
+            'name'        => 'sometimes|required|string|max:255',
+            'genre'       => 'nullable|string',
+            'bio'         => 'nullable|string',
+            'city'        => 'nullable|string|max:255',
+            'image'       => 'nullable|string', // base64 আসবে
+            'cover_photo' => 'nullable|string', // base64 আসবে
+        ]);
+
+        // Update user info
+        User::where('id', $artist->user_id)->update([
+            'name'  => $request->name ?? $artist->name,
+            'email' => $request->email ?? $artist->email,
+        ]);
+
+        $artist->fill($validated);
+
+        // Handle Base64 image
+        if ($request->image) {
+            if ($artist->image) {
+                Storage::disk('public')->delete($artist->image);
+            }
+
+            $artist->image = $this->saveBase64Image($request->image, 'artist/images');
+        }
+
+        // Handle Base64 cover photo
+        if ($request->cover_photo) {
+            if ($artist->cover_photo) {
+                Storage::disk('public')->delete($artist->cover_photo);
+            }
+
+            $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'artist/covers');
+        }
+
+        $artist->save();
+
+        return response()->json([
+            'data'    => $artist,
+            'success' => true,
+            'status'  => 200,
+            'message' => 'Artist profile updated successfully.',
+        ], 200);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'error'   => 'Validation failed',
+            'message' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'   => 'An error occurred while updating the artist profile.',
+            'message' => $e->getMessage(),
+        ], 500);
     }
+}
+
+/**
+ * Save Base64 encoded image to storage and return path
+ */
+private function saveBase64Image($base64Image, $folder)
+{
+    // remove "data:image/png;base64," part if exists
+    if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+        $image = substr($base64Image, strpos($base64Image, ',') + 1);
+        $extension = strtolower($type[1]); // jpg, png, gif etc
+    } else {
+        throw new \Exception('Invalid image data');
+    }
+
+    $image = str_replace(' ', '+', $image);
+    $imageData = base64_decode($image);
+
+    if ($imageData === false) {
+        throw new \Exception('Base64 decode failed');
+    }
+
+    $fileName = $folder . '/' . uniqid() . '.' . $extension;
+
+    Storage::disk('public')->put($fileName, $imageData);
+
+    return $fileName;
+}
+
 
     /**
      * Remove the specified artist profile.
