@@ -148,7 +148,7 @@ public function update(Request $request, $id)
 
         // Update user info
         if (isset($validated['name']) || isset($validated['email'])) {
-            $artist->user()->update([
+            User::where('id', $artist->user_id)->update([
                 'name'  => $validated['name'] ?? $artist->user->name,
                 'email' => $validated['email'] ?? $artist->user->email,
             ]);
