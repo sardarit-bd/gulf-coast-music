@@ -139,12 +139,21 @@ public function update(Request $request, $userId)
         // Validate input
         $validated = $request->validate([
             'name'        => 'sometimes|required|string|max:255',
+            'email'       => 'sometimes|required|email|max:255', // user email
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
             'image'       => 'nullable|string',        // base64
             'cover_photo' => 'nullable|string',        // base64
         ]);
+
+        // Update user info
+        if (isset($validated['name']) || isset($validated['email'])) {
+            $artist->user->update([
+                'name'  => $validated['name'] ?? $artist->user->name,
+                'email' => $validated['email'] ?? $artist->user->email,
+            ]);
+        }
 
         // Fill Artist info
         $artist->fill($validated);
@@ -189,6 +198,7 @@ public function update(Request $request, $userId)
         ], 500);
     }
 }
+
 
 
 
