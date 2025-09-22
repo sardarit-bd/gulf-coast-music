@@ -85,59 +85,54 @@ class AuthController extends Controller
      * POST /api/auth/login
      * Body: email, password
      */
-    public function login(Request $request)
-    {
-        try {
-            // ✅ Validate request
-            $credentials = $request->validate([
-                'email'    => ['required', 'email'],
-                'password' => ['required', 'string', 'min:6'],
-            ]);
+public function login(Request $request)
+{
+    try {
+        // Validate request
+        $credentials = $request->only('email', 'password');
 
-            // ✅ Try login
-            if (!$token = auth('api')->attempt(['email' => $email, 'password' => $password])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid credentials',
-                    'status'  => 401,
-                ], 200);
-            }
-
-            // return response()->json(['message' => $token], 200);
-            $user = auth('api')->user();
-
-            // ✅ Check active status
-            if ($user->status !== 'Active') {
-                auth('api')->logout();
-                return response()->json([
-                    'data'    => [],
-                    'success' => false,
-                    'status'  => 401,
-                    'message' => 'Account is not active yet please contact admin',
-                ], 200);
-            }
-
-            // ✅ Success
-            return response()->json([
-                'data' => [
-                    'token' => $token,
-                    'user'  => $user,
-                ],
-                'status'  => 200,
-                'success' => true,
-                'message' => 'Logged in successfully',
-            ], 200);
-
-        } catch (\Throwable $e) {
-            // ✅ Exception handling
+        // Attempt login with API guard
+        if (!$token = auth('api')->attempt($credentials)) {
             return response()->json([
                 'success' => false,
-                'status'  => 500,
-                'message' => 'Something went wrong during login',
-                'error'   => $e->getMessage(), // debug purpose
-            ], 500);
+                'status'  => 401,
+                'message' => 'Invalid credentials',
+            ], 401);
         }
+
+        $user = auth('api')->user();
+
+        // Check active status
+        if ($user->status !== 'Active') {
+            auth('api')->logout();
+            return response()->json([
+                'success' => false,
+                'status'  => 401,
+                'message' => 'Account is not active yet. Please contact admin.',
+            ], 401);
+        }
+
+        // Success
+        return response()->json([
+            'success' => true,
+            'status'  => 200,
+            'message' => 'Logged in successfully',
+            'data'    => [
+                'token' => $token,
+                'user'  => $user,
+            ]
+        ], 200);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'status'  => 500,
+            'message' => 'Something went wrong during login',
+            'error'   => app()->environment('local') ? $e->getMessage() : null,
+        ], 500);
     }
+}
+
 
 
 
