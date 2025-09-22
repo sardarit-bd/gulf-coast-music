@@ -138,9 +138,7 @@ public function update(Request $request, $id)
         }
 
 
-           return response()->json([
-                    'message' => 'Artist profile found.'
-                ], 200);
+
 
         // Validate input
         $validated = $request->validate([
@@ -152,6 +150,12 @@ public function update(Request $request, $id)
             'image'       => 'nullable|string',
             'cover_photo' => 'nullable|string',
         ]);
+
+        if(isset($validated['email'])) {
+                         return response()->json([
+                    'message' => 'Artist profile found.'
+                ], 200);
+        }
 
         // Update user info
         if (isset($validated['name']) || isset($validated['email'])) {
