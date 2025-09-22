@@ -130,7 +130,7 @@ public function update(Request $request, $id)
 
     try {
         // Ownership check
-        if ($artist->user_id !== Auth::id()) {
+        if ($artist->user_id !== Auth::user()->id) {
             return response()->json([
                 'message' => 'Unauthorized to update this profile.'
             ], 403);
