@@ -129,10 +129,7 @@ public function update(Request $request, $userId)
 
     try {
 
-return response()->json([
-                'error'   => 'An error occurred while updating the artist profile.',
-                'message' => $request->all(),
-            ], 200);
+
 
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
@@ -151,6 +148,11 @@ return response()->json([
             'image'       => 'nullable|string',        // base64
             'cover_photo' => 'nullable|string',        // base64
         ]);
+
+        return response()->json([
+                'error'   => 'An error occurred while updating the artist profile.',
+                'message' => $validated,
+            ], 200);
 
         // Update user info
         if (isset($validated['name']) || isset($validated['email'])) {
