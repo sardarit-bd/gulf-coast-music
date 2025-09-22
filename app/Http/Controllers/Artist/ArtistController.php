@@ -124,6 +124,10 @@ class ArtistController extends Controller
      */
 public function update(Request $request, Artist $artist)
 {
+    return response()->json([
+        'error'   => 'Update functionality is currently disabled.',
+        'message' => $request->all(),
+    ], 200);
     try {
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
@@ -136,8 +140,8 @@ public function update(Request $request, Artist $artist)
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
-            'image'       => 'nullable|string', // base64 আসবে
-            'cover_photo' => 'nullable|string', // base64 আসবে
+            'image'       => 'nullable|string',
+            'cover_photo' => 'nullable|string',
         ]);
 
         // Update user info
