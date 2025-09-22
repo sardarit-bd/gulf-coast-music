@@ -158,16 +158,15 @@ public function update(Request $request, $id)
         }
 
         // Update user info
-        if (isset($validated['name']) || isset($validated['email'])) {
-            $artist->user()->update([
-                'name'  => $validated['name'] ?? $artist->user->name,
-                'email' => $validated['email'] ?? $artist->user->email,
-            ]);
-        }
+
 
         unset($validated['email']);
         // Fill artist fields
         $artist->fill($validated);
+
+                           return response()->json([
+                    'message' => $artist
+                ], 200);
 
         // Handle Base64 images
         if (!empty($validated['image'])) {
