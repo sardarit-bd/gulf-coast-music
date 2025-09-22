@@ -159,15 +159,16 @@ public function update(Request $request, $userId)
             if ($artist->image) {
                 Storage::disk('public')->delete($artist->image);
             }
-            $artist->image = $this->saveBase64Image($request->image, 'public/artist/images');
+            $artist->image = $this->saveBase64Image($request->image, 'artist/images'); // remove 'public/'
         }
 
         if ($request->cover_photo) {
             if ($artist->cover_photo) {
                 Storage::disk('public')->delete($artist->cover_photo);
             }
-            $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'public/artist/covers');
+            $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'artist/covers'); // remove 'public/'
         }
+
 
         $artist->save();
 
