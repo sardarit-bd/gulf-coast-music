@@ -33,7 +33,7 @@ Route::middleware('auth:api')->group(function () {
     //===================================Artist Routes===================================
     Route::apiResource('artists', ArtistController::class);
     // updating artist
-    Route::put('artist/{id}', [ArtistController::class, 'update']);
+    Route::put('artist/user/{user_id}', [ArtistController::class, 'update']);
     Route::apiResource('photos', ArtistPhotoController::class);
     Route::apiResource('songs', ArtistSongController::class);
 

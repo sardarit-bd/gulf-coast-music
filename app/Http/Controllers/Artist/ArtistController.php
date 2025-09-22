@@ -123,9 +123,9 @@ class ArtistController extends Controller
     /**
      * Update the specified artist profile.
      */
-    public function update(Request $request, $id)
-    {
-        $artist = Artist::with('user')->where('user_id', $id)->firstOrFail();
+public function update(Request $request, $userId)
+{
+    $artist = Artist::with('user')->where('user_id', $userId)->firstOrFail();
 
         try {
             // Ownership check
