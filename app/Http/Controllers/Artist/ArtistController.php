@@ -146,7 +146,7 @@ public function update(Request $request, $userId)
         ]);
 
         // Update user info
-        User::where('id', $artist->user_id)->update([
+        $user = User::where('id', $artist->user_id)->update([
             'name'  => $request->name ?? $artist->name,
             'email' => $request->email ?? $artist->email,
         ]);
@@ -167,6 +167,8 @@ public function update(Request $request, $userId)
             }
             $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'public/artist/covers');
         }
+
+        $artist->email = $user->email ?? $artist->email;
 
         $artist->save();
 
