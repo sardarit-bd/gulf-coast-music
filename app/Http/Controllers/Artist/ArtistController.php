@@ -134,7 +134,7 @@ public function update(Request $request, $id)
     }else{
                 return response()->json([
                     'message' => 'Artist profile found.'
-                ], 404);
+                ], 200);
     }
 
     try {
