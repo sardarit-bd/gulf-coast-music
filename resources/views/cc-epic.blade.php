@@ -11,85 +11,68 @@
             color: #0f0;
             font-family: "Courier New", monospace;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
-            transition: all 0.5s ease;
         }
 
         #output {
             white-space: pre;
             font-size: 16px;
             line-height: 1.3;
+            margin-bottom: 20px;
         }
 
-        .flash {
-            animation: flash 1s infinite;
+        .progress-container {
+            width: 80%;
+            background-color: #222;
+            border: 2px solid #0f0;
+            border-radius: 5px;
+            overflow: hidden;
         }
 
-        @keyframes flash {
-
-            0%,
-            50%,
-            100% {
-                opacity: 1;
-            }
-
-            25%,
-            75% {
-                opacity: 0;
-            }
-        }
-
-        /* New theme after 3s */
-        .theme2 {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff;
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #0f0;
+            text-align: center;
+            line-height: 20px;
+            color: black;
+            font-weight: bold;
+            transition: width 0.1s linear;
         }
     </style>
 </head>
 
 <body>
-    <pre id="output"></pre>
+
+    <pre id="output">
+🚀 SYSTEM HACK INITIATED...
+Clearing caches...
+</pre>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar">0%</div>
+    </div>
 
     <script>
-        const lines = [
-            `╔════════════════════════════════╗`,
-            `║   ⚡ Laravel Epic Cache Clear ⚡  ║`,
-            `╠════════════════════════════════╣`,
-            `║  Config: Cleared               ║`,
-            `║  Route: Cleared                ║`,
-            `║  Cache: Cleared                ║`,
-            `║  Views: Cleared                ║`,
-            `╠════════════════════════════════╣`,
-            `║   ✅ All caches cleared!       ║`,
-            `╚════════════════════════════════╝`,
-            ``,
-            `🚀 SYSTEM HACK INITIATED...`
-        ];
+        const progressBar = document.getElementById('progress-bar');
+        let width = 0;
 
-        const output = document.getElementById('output');
-        let i = 0;
-
-        function printLine() {
-            if (i < lines.length) {
-                const span = document.createElement('span');
-                span.textContent = lines[i] + '\n';
-                span.classList.add('flash');
-                output.appendChild(span);
-                i++;
-                setTimeout(printLine, 300); // line by line animation
+        // Progress bar animation
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                document.getElementById('output').textContent += '\n✅ All caches cleared!';
+            } else {
+                width++;
+                progressBar.style.width = width + '%';
+                progressBar.textContent = width + '%';
             }
-        }
-
-        printLine();
-
-        // Change theme after 3 seconds
-        setTimeout(() => {
-            document.body.classList.add('theme2');
-        }, 3000);
+        }, 30); // 30ms * 100 = ~3 seconds
     </script>
+
 </body>
 
 </html>
