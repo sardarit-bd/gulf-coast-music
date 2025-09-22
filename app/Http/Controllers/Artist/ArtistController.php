@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Artist;
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\Validator;
 
 class ArtistController extends Controller
@@ -156,10 +158,8 @@ public function updateProfile(Request $request, $id)
 
         $validated = $validator->validated();
 
-        // ✅ Update artist fields
         $artist->fill($validated);
 
-        // ✅ Handle Base64 images
         if (!empty($validated['image'])) {
             if ($artist->image) {
                 Storage::disk('public')->delete($artist->image);
@@ -176,7 +176,6 @@ public function updateProfile(Request $request, $id)
 
         $artist->save();
 
-        // Refresh to load latest data
         $artist->refresh();
         $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
         $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
@@ -192,19 +191,27 @@ public function updateProfile(Request $request, $id)
             'error'   => 'Validation failed',
             'message' => $e->errors(),
         ], 422);
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+    } catch (ModelNotFoundException $e) {
         return response()->json([
             'error'   => 'Artist not found',
             'message' => $e->getMessage(),
         ], 404);
     } catch (\Exception $e) {
+        // 🔴 Log the error for debugging
+        Log::error('Artist Update Error', [
+            'id'      => $id,
+            'user_id' => Auth::id(),
+            'request' => $request->all(),
+            'error'   => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+
         return response()->json([
             'error'   => 'An error occurred while updating the artist profile.',
             'message' => $e->getMessage(),
         ], 500);
     }
 }
-
 
     // public function updateProfile(Request $request, $id)
 // {
