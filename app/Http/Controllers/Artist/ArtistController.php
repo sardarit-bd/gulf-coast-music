@@ -151,12 +151,6 @@ public function update(Request $request, $id)
             'cover_photo' => 'nullable|string',
         ]);
 
-        if(isset($validated['email'])) {
-                         return response()->json([
-                    'message' => 'Artist profile found.'
-                ], 200);
-        }
-
         // Update user info
 
 
