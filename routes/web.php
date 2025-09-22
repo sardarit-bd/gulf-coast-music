@@ -8,8 +8,6 @@ Route::get('/', function () {
 });
 
 
-use Illuminate\Support\Facades\Artisan;
-
 Route::get('/cc', function () {
     // Clear everything
     Artisan::call('config:clear');
