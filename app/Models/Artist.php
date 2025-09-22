@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Artist extends Model
 {
     use HasFactory;
-
+    //fillable fields
     protected $fillable = [
         'user_id',
         'name',
