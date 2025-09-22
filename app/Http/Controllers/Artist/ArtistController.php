@@ -30,8 +30,8 @@ class ArtistController extends Controller
             }
 
             // convert image urls
-            $artist->image_url = $artist->image ? Storage::url($artist->image) : null;
-            $artist->cover_photo_url = $artist->cover_photo ? Storage::url($artist->cover_photo) : null;
+            $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
+            $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
 
             return response()->json([
                 'data' => $artist,
