@@ -125,12 +125,11 @@ class ArtistController extends Controller
      */
 public function update(Request $request, $id)
 {
-    // Fetch artist with user
-    $artist = Artist::with('user')->where('user_id', $id)->firstOrFail();
+    $artist = Artist::where('user_id', $id)->firstOrFail(); // ensure artist exists
 
     try {
         // Ownership check
-        if ($artist->user_id !== Auth::user()->id) {
+        if ($artist->user_id !== Auth::id()) {
             return response()->json([
                 'message' => 'Unauthorized to update this profile.'
             ], 403);
@@ -139,17 +138,17 @@ public function update(Request $request, $id)
         // Validate input
         $validated = $request->validate([
             'name'        => 'sometimes|required|string|max:255',
-            'email'       => 'sometimes|required|email|max:255', // user email
+            'email'       => 'sometimes|required|email|max:255',
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
-            'image'       => 'nullable|string', // Base64
-            'cover_photo' => 'nullable|string', // Base64
+            'image'       => 'nullable|string',
+            'cover_photo' => 'nullable|string',
         ]);
 
-        // Update user info (name + email)
+        // Update user info
         if (isset($validated['name']) || isset($validated['email'])) {
-            $artist->user->update([
+            $artist->user()->update([
                 'name'  => $validated['name'] ?? $artist->user->name,
                 'email' => $validated['email'] ?? $artist->user->email,
             ]);
@@ -158,24 +157,20 @@ public function update(Request $request, $id)
         // Fill artist fields
         $artist->fill($validated);
 
-        // Handle Base64 image
+        // Handle Base64 images
         if (!empty($validated['image'])) {
-            if ($artist->image) {
-                Storage::disk('public')->delete($artist->image);
-            }
+            if ($artist->image) Storage::disk('public')->delete($artist->image);
             $artist->image = $this->saveBase64Image($validated['image'], 'artist/images');
         }
-
         if (!empty($validated['cover_photo'])) {
-            if ($artist->cover_photo) {
-                Storage::disk('public')->delete($artist->cover_photo);
-            }
+            if ($artist->cover_photo) Storage::disk('public')->delete($artist->cover_photo);
             $artist->cover_photo = $this->saveBase64Image($validated['cover_photo'], 'artist/covers');
         }
 
         $artist->save();
 
-        // Add full URL for frontend
+        // Add full URLs
+        $artist->refresh(); // refresh model to get latest relation data
         $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
         $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
 
@@ -184,7 +179,7 @@ public function update(Request $request, $id)
             'success' => true,
             'status'  => 200,
             'message' => 'Artist profile updated successfully.',
-        ], 200);
+        ]);
 
     } catch (ValidationException $e) {
         return response()->json([
@@ -198,6 +193,7 @@ public function update(Request $request, $id)
         ], 500);
     }
 }
+
 
 /**
  * Save Base64 encoded image to storage and return path
