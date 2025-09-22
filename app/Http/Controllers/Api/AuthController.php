@@ -95,7 +95,7 @@ class AuthController extends Controller
             ]);
 
             // ✅ Try login
-            if ($token = auth('api')->attempt($credentials)) {
+            if (!$token = auth('api')->attempt(['email' => $email, 'password' => $password])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid credentials',
