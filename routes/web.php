@@ -8,30 +8,15 @@ Route::get('/', function () {
 });
 
 
-Route::get('/cc', function () {
-    // Clear everything
+Route::get('/cc-view', function () {
+    // Clear cache
     Artisan::call('config:clear');
     Artisan::call('route:clear');
     Artisan::call('cache:clear');
     Artisan::call('view:clear');
     Artisan::call('config:cache');
 
-    // ASCII/Visual style message
-    $ascii = <<<ASCII
-╔════════════════════════════════╗
-║   ⚡ Laravel Epic Cache Clear ⚡  ║
-╠════════════════════════════════╣
-║  Config: Cleared               ║
-║  Route: Cleared                ║
-║  Cache: Cleared                ║
-║  Views: Cleared                ║
-╠════════════════════════════════╣
-║   ✅ All caches cleared!       ║
-╚════════════════════════════════╝
-ASCII;
-
-    return response()->json([
-        'message' => "🚀 SYSTEM HACK INITIATED...",
-        'output'  => $ascii
-    ]);
+    // Return epic view
+    return view('cc-epic');
 });
+
