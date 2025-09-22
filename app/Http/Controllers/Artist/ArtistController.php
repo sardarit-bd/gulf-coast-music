@@ -129,7 +129,7 @@ class ArtistController extends Controller
 public function updateProfile(Request $request, $id)
 {
     try {
-        // Find artist with user relation
+        // Find the artist with user relation
         $artist = Artist::with('user')->findOrFail($id);
 
         // Ownership check
@@ -146,8 +146,8 @@ public function updateProfile(Request $request, $id)
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
-            'image'       => 'nullable|string',       // base64 or path
-            'cover_photo' => 'nullable|string',       // base64 or path
+            'image'       => 'nullable|string',       // Base64 or existing path
+            'cover_photo' => 'nullable|string',       // Base64 or existing path
         ]);
 
         if ($validator->fails()) {
@@ -159,7 +159,7 @@ public function updateProfile(Request $request, $id)
 
         $validated = $validator->validated();
 
-        // Update user info
+        // Update user info (name & email)
         if (isset($validated['name']) || isset($validated['email'])) {
             $artist->user->update([
                 'name'  => $validated['name'] ?? $artist->user->name,
@@ -167,23 +167,21 @@ public function updateProfile(Request $request, $id)
             ]);
         }
 
-        // Remove email from artist fields
+        // Remove email so it's not updated in Artist table
         unset($validated['email']);
 
-        // Handle artist image safely
-       // Handle artist image safely
+        // Handle artist image
         if (isset($validated['image'])) {
             if (str_starts_with($validated['image'], 'data:image')) {
-                // It's Base64, save it
                 if ($artist->image) Storage::disk('public')->delete($artist->image);
                 $artist->image = $this->saveBase64Image($validated['image'], 'artist/images');
             } else {
-                // It's just a path or URL, keep it
+                // Keep existing path or URL
                 $artist->image = $validated['image'];
             }
         }
 
-        // Handle cover photo safely
+        // Handle cover photo
         if (isset($validated['cover_photo'])) {
             if (str_starts_with($validated['cover_photo'], 'data:image')) {
                 if ($artist->cover_photo) Storage::disk('public')->delete($artist->cover_photo);
@@ -193,11 +191,11 @@ public function updateProfile(Request $request, $id)
             }
         }
 
-        // Update remaining artist fields
+        // Update other artist fields
         $artist->fill($validated);
         $artist->save();
 
-        // Add full URLs for frontend
+        // Refresh to get latest data
         $artist->refresh();
         $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
         $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
@@ -216,7 +214,6 @@ public function updateProfile(Request $request, $id)
         ], 500);
     }
 }
-
 
 /**
  * Save Base64 encoded image to storage and return path
@@ -242,7 +239,6 @@ private function saveBase64Image($base64Image, $folder)
 
     return $fileName;
 }
-
 
     /**
      * Remove the specified artist profile.
