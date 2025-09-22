@@ -94,7 +94,7 @@ class AuthController extends Controller
                 'password' => ['required', 'string', 'min:6'],
             ]);
 
-            return response()->json(['message' => 'from try'. $credentials], 200);
+            return response()->json(['message' => $credentials], 200);
             // ✅ Try login
             if (!$token = auth('api')->attempt($credentials)) {
                 return response()->json([
