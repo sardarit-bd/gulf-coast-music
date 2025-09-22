@@ -8,7 +8,7 @@ Route::get('/', function () {
 });
 
 
-Route::get('/cc-view', function () {
+Route::get('/cc', function () {
     // Clear cache
     Artisan::call('config:clear');
     Artisan::call('route:clear');
