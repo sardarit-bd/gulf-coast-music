@@ -48,7 +48,7 @@ class PrintifyController extends Controller
     // 3. Add Product
     public function addProduct(Request $request)
     {
-        $payload = $request->all(); // তোমার প্রোডাক্ট JSON এখানে পাঠাবে
+        $payload = $request->all();
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiToken,
