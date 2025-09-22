@@ -154,6 +154,8 @@ public function update(Request $request, $id)
             ]);
         }
 
+        unset($validated['email']);
+
         // Fill artist fields
         $artist->fill($validated);
 
