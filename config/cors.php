@@ -4,6 +4,7 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         'http://localhost:3000',
+        'https://gulf-coast.vercel.app',
         'http://127.0.0.1:3000',       // your local frontend
         'https://gulf.sardaritskillshare.com', // live backend
     ],
