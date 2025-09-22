@@ -123,14 +123,12 @@ class ArtistController extends Controller
     /**
      * Update the specified artist profile.
      */
-public function update(Request $request, $userId)
-{     // Fetch artist by user_id
-    $artist = Artist::with('user')->where('user_id', $userId)->firstOrFail();
+public function update(Request $request, $id)
+{
+    // Fetch artist with user
+    $artist = Artist::with('user')->findOrFail($id);
 
     try {
-
-
-
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
@@ -145,11 +143,11 @@ public function update(Request $request, $userId)
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
-            'image'       => 'nullable|string',        // base64
-            'cover_photo' => 'nullable|string',        // base64
+            'image'       => 'nullable|string', // Base64
+            'cover_photo' => 'nullable|string', // Base64
         ]);
 
-        // Update user info
+        // Update user info (name + email)
         if (isset($validated['name']) || isset($validated['email'])) {
             $artist->user->update([
                 'name'  => $validated['name'] ?? $artist->user->name,
@@ -157,13 +155,8 @@ public function update(Request $request, $userId)
             ]);
         }
 
-            // return response()->json([
-            //     'error'   => 'An error occurred while updating the artist profile.',
-            //     'message' => $validated,
-            // ], 200);
-
-        // Fill Artist info
-        $is_okay = $artist->fill($validated);
+        // Fill artist fields
+        $artist->fill($validated);
 
         // Handle Base64 image
         if (!empty($validated['image'])) {
@@ -183,8 +176,8 @@ public function update(Request $request, $userId)
         $artist->save();
 
         // Add full URL for frontend
-        $artist->image_url = $artist->image ? Storage::url($artist->image) : null;
-        $artist->cover_photo_url = $artist->cover_photo ? Storage::url($artist->cover_photo): null;
+        $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
+        $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
 
         return response()->json([
             'data'    => $artist,
@@ -206,18 +199,14 @@ public function update(Request $request, $userId)
     }
 }
 
-
-
-
 /**
  * Save Base64 encoded image to storage and return path
  */
 private function saveBase64Image($base64Image, $folder)
 {
-    // remove "data:image/png;base64," part if exists
     if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
         $image = substr($base64Image, strpos($base64Image, ',') + 1);
-        $extension = strtolower($type[1]); // jpg, png, gif etc
+        $extension = strtolower($type[1]); // jpg, png, gif
     } else {
         throw new \Exception('Invalid image data');
     }
@@ -230,11 +219,41 @@ private function saveBase64Image($base64Image, $folder)
     }
 
     $fileName = $folder . '/' . uniqid() . '.' . $extension;
-
     Storage::disk('public')->put($fileName, $imageData);
 
     return $fileName;
 }
+
+
+
+
+
+/**
+ * Save Base64 encoded image to storage and return path
+ */
+// private function saveBase64Image($base64Image, $folder)
+// {
+//     // remove "data:image/png;base64," part if exists
+//     if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+//         $image = substr($base64Image, strpos($base64Image, ',') + 1);
+//         $extension = strtolower($type[1]); // jpg, png, gif etc
+//     } else {
+//         throw new \Exception('Invalid image data');
+//     }
+
+//     $image = str_replace(' ', '+', $image);
+//     $imageData = base64_decode($image);
+
+//     if ($imageData === false) {
+//         throw new \Exception('Base64 decode failed');
+//     }
+
+//     $fileName = $folder . '/' . uniqid() . '.' . $extension;
+
+//     Storage::disk('public')->put($fileName, $imageData);
+
+//     return $fileName;
+// }
 
 
     /**
