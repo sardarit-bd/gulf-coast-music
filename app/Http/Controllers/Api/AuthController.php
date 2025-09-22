@@ -88,13 +88,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
-            return response()->json(['message' => 'from try'], 200);
             // ✅ Validate request
             $credentials = $request->validate([
                 'email'    => ['required', 'email'],
                 'password' => ['required', 'string', 'min:6'],
             ]);
 
+            return response()->json(['message' => 'from try'. $credentials], 200);
             // ✅ Try login
             if (!$token = auth('api')->attempt($credentials)) {
                 return response()->json([
