@@ -161,14 +161,14 @@ public function update(Request $request, $id)
 
 
         // Handle Base64 images
-        if (!empty($validated['image'])) {
-            if ($artist->image) Storage::disk('public')->delete($artist->image);
-            $artist->image = $this->saveBase64Image($validated['image'], 'artist/images');
-        }
-        if (!empty($validated['cover_photo'])) {
-            if ($artist->cover_photo) Storage::disk('public')->delete($artist->cover_photo);
-            $artist->cover_photo = $this->saveBase64Image($validated['cover_photo'], 'artist/covers');
-        }
+        // if (!empty($validated['image'])) {
+        //     if ($artist->image) Storage::disk('public')->delete($artist->image);
+        //     $artist->image = $this->saveBase64Image($validated['image'], 'artist/images');
+        // }
+        // if (!empty($validated['cover_photo'])) {
+        //     if ($artist->cover_photo) Storage::disk('public')->delete($artist->cover_photo);
+        //     $artist->cover_photo = $this->saveBase64Image($validated['cover_photo'], 'artist/covers');
+        // }
 
                 return response()->json([
                     'message' => $artist
