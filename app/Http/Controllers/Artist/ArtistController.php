@@ -122,12 +122,10 @@ class ArtistController extends Controller
     /**
      * Update the specified artist profile.
      */
-public function update(Request $request, Artist $artist)
+public function update(Request $request,$id)
 {
-    return response()->json([
-        'error'   => 'Update functionality is currently disabled.',
-        'message' => $request->all(),
-    ], 200);
+    $artist = Artist::where('id', $id)->with('user')->firstOrFail($id);
+
     try {
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
