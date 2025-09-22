@@ -170,22 +170,24 @@ public function updateProfile(Request $request, $id)
         // Remove email from artist fields
         unset($validated['email']);
 
-        // Handle artist image
+        // Handle artist image safely
         if (isset($validated['image'])) {
             if (str_starts_with($validated['image'], 'data:image')) {
+                // it's a Base64 string
                 if ($artist->image) Storage::disk('public')->delete($artist->image);
                 $artist->image = $this->saveBase64Image($validated['image'], 'artist/images');
-            } else {
+            } elseif (!empty($validated['image'])) {
+                // it's a path or URL
                 $artist->image = $validated['image'];
             }
         }
 
-        // Handle cover photo
+        // Handle cover photo safely
         if (isset($validated['cover_photo'])) {
             if (str_starts_with($validated['cover_photo'], 'data:image')) {
                 if ($artist->cover_photo) Storage::disk('public')->delete($artist->cover_photo);
                 $artist->cover_photo = $this->saveBase64Image($validated['cover_photo'], 'artist/covers');
-            } else {
+            } elseif (!empty($validated['cover_photo'])) {
                 $artist->cover_photo = $validated['cover_photo'];
             }
         }
@@ -213,6 +215,7 @@ public function updateProfile(Request $request, $id)
         ], 500);
     }
 }
+
 
 /**
  * Save Base64 encoded image to storage and return path
