@@ -163,7 +163,12 @@ public function update(Request $request, $userId)
             // ], 200);
 
         // Fill Artist info
-        $artist->fill($validated);
+        $is_okay = $artist->fill($validated);
+
+        return response()->json([
+            'error'   => 'Jodi thik thake',
+            'message' => $is_okay,
+        ], 200);
 
         // Handle Base64 image
         if (!empty($validated['image'])) {
