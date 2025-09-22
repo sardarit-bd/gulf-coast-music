@@ -151,6 +151,8 @@ public function update(Request $request, $userId)
             'email' => $request->email ?? $artist->email,
         ]);
 
+        $validated['email'] = $request->email ?? $artist->user->email;
+
         $artist->fill($validated);
 
         // Handle Base64 image
@@ -167,8 +169,6 @@ public function update(Request $request, $userId)
             }
             $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'public/artist/covers');
         }
-
-        $artist->email = $user->email ?? $artist->email;
 
         $artist->save();
 
