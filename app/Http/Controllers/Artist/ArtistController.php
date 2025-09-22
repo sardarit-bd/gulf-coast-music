@@ -129,7 +129,7 @@ public function update(Request $request, $id)
 
     if (!$artist) {
         return response()->json([
-            'error' => 'Artist profile not found.'
+            'message' => 'Artist profile not found.'
         ], 404);
     }
 
