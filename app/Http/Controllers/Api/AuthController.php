@@ -100,7 +100,7 @@ class AuthController extends Controller
                     'success' => false,
                     'message' => 'Invalid credentials',
                     'status'  => 401,
-                ], 401);
+                ], 200);
             }
 
             return response()->json(['message' => $token], 200);
