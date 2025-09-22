@@ -32,6 +32,7 @@ Route::middleware('auth:api')->group(function () {
 
     //===================================Artist Routes===================================
     Route::apiResource('artists', ArtistController::class);
+    Route::post('artist/{id}', [ArtistController::class, 'update']);
     Route::apiResource('photos', ArtistPhotoController::class);
     Route::apiResource('songs', ArtistSongController::class);
 
