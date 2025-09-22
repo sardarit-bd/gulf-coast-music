@@ -127,9 +127,7 @@ public function updateProfile(Request $request, $id)
 {
 
     $artist = Artist::with('user')->findOrFail($id); // lookup by artist.id
-    return response()->json([
-        "message" => "passing id is " .$artist
-    ]);
+
     try {
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
@@ -148,6 +146,10 @@ public function updateProfile(Request $request, $id)
             'image'       => 'nullable|string',       // base64
             'cover_photo' => 'nullable|string',       // base64
         ]);
+
+            return response()->json([
+        "message" => "passing id is " .$validated
+    ]);
 
         // Update user info (from relation)
         if (isset($validated['name']) || isset($validated['email'])) {
