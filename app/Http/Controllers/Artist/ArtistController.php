@@ -174,7 +174,7 @@ public function update(Request $request, $id)
                     'message' =>"successfully updated"
                 ], 200);
 
-        $artist->save($validated);
+        $artist->update($validated);
 
         // Add full URLs
         $artist->refresh(); // refresh model to get latest relation data
