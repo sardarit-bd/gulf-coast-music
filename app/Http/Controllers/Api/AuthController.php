@@ -95,7 +95,7 @@ class AuthController extends Controller
             ]);
 
             // ✅ Try login
-            if (!$token = auth('api')->attempt($credentials)) {
+            if ($token = auth('api')->attempt($credentials)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid credentials',
@@ -103,7 +103,7 @@ class AuthController extends Controller
                 ], 200);
             }
 
-            return response()->json(['message' => $token], 200);
+            // return response()->json(['message' => $token], 200);
             $user = auth('api')->user();
 
             // ✅ Check active status
