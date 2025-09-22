@@ -156,8 +156,6 @@ public function updateProfile(Request $request, $id)
     // Validated data
     $validated = $validator->validated();
 
-    // Remove email from artist table fields
-    unset($validated['email']);
 
     // ✅ Update artist fields
     $artist->fill($validated);
