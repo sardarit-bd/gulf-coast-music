@@ -81,7 +81,6 @@ class AuthController extends Controller
         }
     }
 
-
     /**
      * POST /api/auth/login
      * Body: email, password
