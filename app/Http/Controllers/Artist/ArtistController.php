@@ -157,10 +157,10 @@ public function update(Request $request, $userId)
             ]);
         }
 
-            return response()->json([
-                'error'   => 'An error occurred while updating the artist profile.',
-                'message' => $validated,
-            ], 200);
+            // return response()->json([
+            //     'error'   => 'An error occurred while updating the artist profile.',
+            //     'message' => $validated,
+            // ], 200);
 
         // Fill Artist info
         $artist->fill($validated);
