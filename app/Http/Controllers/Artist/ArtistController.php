@@ -189,12 +189,12 @@ public function updateProfile(Request $request, $id)
         return response()->json([
             'error'   => 'Validation failed',
             'message' => $e->errors(),
-        ], 422);
+        ], 200);
     } catch (ModelNotFoundException $e) {
         return response()->json([
             'error'   => 'Artist not found',
             'message' => $e->getMessage(),
-        ], 404);
+        ], 200);
     } catch (\Exception $e) {
         // 🔴 Log the error for debugging
         Log::error('Artist Update Error', [
@@ -208,7 +208,7 @@ public function updateProfile(Request $request, $id)
         return response()->json([
             'error'   => 'An error occurred while updating the artist profile.',
             'message' => $e->getMessage(),
-        ], 500);
+        ], 200);
     }
 }
 
