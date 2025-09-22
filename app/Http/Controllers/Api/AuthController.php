@@ -133,9 +133,6 @@ public function login(Request $request)
     }
 }
 
-
-
-
     /**
      * GET /api/me  (protected)
      * Header: Authorization: Bearer <token>
