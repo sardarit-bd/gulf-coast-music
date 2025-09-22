@@ -138,8 +138,8 @@ public function updateProfile(Request $request, $id)
 
         // Validate input
         $validated = $request->validate([
-            'name'        => 'sometimes|required|string|max:255',
-            'email'       => 'sometimes|required|email|max:255', // belongs to users
+            'name'        => 'string|max:255',
+            'email'       => 'email|max:255',
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
