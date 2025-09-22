@@ -124,7 +124,12 @@ class ArtistController extends Controller
      * Update the specified artist profile.
      */
 public function update(Request $request, $userId)
-{
+{ return response()->json([
+                'error'   => 'An error occurred while updating the artist profile.',
+                'message' => $request->all(),
+            ], 500);
+        }
+    }
     // Fetch artist by user_id
     $artist = Artist::with('user')->where('user_id', $userId)->firstOrFail();
 
