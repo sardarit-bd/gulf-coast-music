@@ -129,7 +129,7 @@ public function update(Request $request, $userId)
     $artist = Artist::with('user')->where('user_id', $userId)->firstOrFail();
 
     try {
-        // Ownership check (optional, safer)
+        // Ownership check
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
                 'error' => 'Unauthorized to update this profile.'
@@ -142,35 +142,33 @@ public function update(Request $request, $userId)
             'genre'       => 'nullable|string',
             'bio'         => 'nullable|string',
             'city'        => 'nullable|string|max:255',
-            'image'       => 'nullable|string',
-            'cover_photo' => 'nullable|string',
+            'image'       => 'nullable|string',        // base64
+            'cover_photo' => 'nullable|string',        // base64
         ]);
 
-        // Update user info
-        User::where('id', $artist->user_id)->update([
-            'name'  => $request->name ?? $artist->name,
-            'email' => $request->email ?? $artist->email,
-        ]);
-
+        // Fill Artist info
         $artist->fill($validated);
 
         // Handle Base64 image
-        if ($request->image) {
+        if (!empty($validated['image'])) {
             if ($artist->image) {
                 Storage::disk('public')->delete($artist->image);
             }
-            $artist->image = $this->saveBase64Image($request->image, 'artist/images'); // remove 'public/'
+            $artist->image = $this->saveBase64Image($validated['image'], 'artist/images');
         }
 
-        if ($request->cover_photo) {
+        if (!empty($validated['cover_photo'])) {
             if ($artist->cover_photo) {
                 Storage::disk('public')->delete($artist->cover_photo);
             }
-            $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'artist/covers'); // remove 'public/'
+            $artist->cover_photo = $this->saveBase64Image($validated['cover_photo'], 'artist/covers');
         }
 
-
         $artist->save();
+
+        // Add full URL for frontend
+        $artist->image_url = $artist->image ? url(Storage::url($artist->image)) : null;
+        $artist->cover_photo_url = $artist->cover_photo ? url(Storage::url($artist->cover_photo)) : null;
 
         return response()->json([
             'data'    => $artist,
@@ -191,6 +189,7 @@ public function update(Request $request, $userId)
         ], 500);
     }
 }
+
 
 
 /**
