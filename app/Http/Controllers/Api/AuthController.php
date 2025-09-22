@@ -85,58 +85,59 @@ class AuthController extends Controller
      * POST /api/auth/login
      * Body: email, password
      */
-public function login(Request $request)
-{
-     try {
-        // ✅ Validate request
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required', 'string', 'min:6'],
-        ]);
+    public function login(Request $request)
+    {
+        try {
+            return response()->json(['message' => 'from try'], 200);
+            // ✅ Validate request
+            $credentials = $request->validate([
+                'email'    => ['required', 'email'],
+                'password' => ['required', 'string', 'min:6'],
+            ]);
 
-        // ✅ Try login
-        if (!$token = auth()->attempt($credentials)) {
+            // ✅ Try login
+            if (!$token = auth('api')->attempt($credentials)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid credentials',
+                    'status'  => 401,
+                ], 401);
+            }
+
+            $user = auth('api')->user();
+
+            // ✅ Check active status
+            if ($user->status !== 'Active') {
+                auth('api')->logout();
+                return response()->json([
+                    'data'    => [],
+                    'success' => false,
+                    'status'  => 401,
+                    'message' => 'Account is not active yet please contact admin',
+                ], 200);
+            }
+
+            // ✅ Success
             return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials',
-                'status'  => 401,
-            ], 401);
-        }
-
-        $user = auth('api')->user();
-
-        // ✅ Check active status
-        if ($user->status !== 'Active') {
-            auth('api')->logout();
-            return response()->json([
-                'data'    => [],
-                'success' => false,
-                'status'  => 401,
-                'message' => 'Account is not active yet please contact admin',
+                'data' => [
+                    'token' => $token,
+                    'user'  => $user,
+                ],
+                'status'  => 200,
+                'success' => true,
+                'message' => 'Logged in successfully',
             ], 200);
+
+        } catch (\Throwable $e) {
+            // ✅ Exception handling
+            return response()->json([
+                'success' => false,
+                'status'  => 500,
+                'message' => 'Something went wrong during login',
+                'error'   => $e->getMessage(), // debug purpose
+            ], 500);
         }
-
-        // ✅ Success
-        return response()->json([
-            'data' => [
-                'token' => $token,
-                'user'  => $user,
-            ],
-            'status'  => 200,
-            'success' => true,
-            'message' => 'Logged in successfully',
-        ], 200);
-
-    } catch (\Throwable $e) {
-        // ✅ Exception handling
-        return response()->json([
-            'success' => false,
-            'status'  => 500,
-            'message' => 'Something went wrong during login',
-            'error'   => $e->getMessage(), // debug purpose
-        ], 500);
     }
-}
 
 
 
