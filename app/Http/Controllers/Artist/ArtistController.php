@@ -125,11 +125,11 @@ class ArtistController extends Controller
      */
 public function updateProfile(Request $request, $id)
 {
-    return response()->json([
-        "message" => "passing id is " . $id
-    ]);
-    $artist = Artist::with('user')->findOrFail($id); // lookup by artist.id
 
+    $artist = Artist::with('user')->findOrFail($id); // lookup by artist.id
+    return response()->json([
+        "message" => "passing id is " .$artist
+    ]);
     try {
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
