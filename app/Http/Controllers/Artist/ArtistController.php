@@ -139,7 +139,6 @@ public function updateProfile(Request $request, $id)
         // Validate input
         $validated = $request->validate([
             'name'        => 'sometimes|string|max:255',
-            'email'       => 'sometimes|email|max:255',
             'genre'       => 'sometimes|nullable|string',
             'bio'         => 'sometimes|nullable|string',
             'city'        => 'sometimes|nullable|string|max:255',
@@ -151,13 +150,6 @@ public function updateProfile(Request $request, $id)
         // return response()->json(['validated' => $validated]);
 
         // Update user info (from relation)
-        User::where('id', $artist->user_id)->update([
-            'email' => $request->input('email'),
-            'name'  => $request->input('name'),
-        ]);
-
-        unset($validated['email']);
-
         $artist->fill($validated);
 
         if (!empty($validated['image'])) {
