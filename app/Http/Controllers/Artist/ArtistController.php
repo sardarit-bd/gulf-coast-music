@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Validation\Validator;
-
+use Illuminate\Support\Facades\Validator;
 class ArtistController extends Controller
 {
     /**
