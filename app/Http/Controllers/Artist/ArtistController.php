@@ -122,17 +122,20 @@ class ArtistController extends Controller
     /**
      * Update the specified artist profile.
      */
-public function update(Request $request,$id)
+public function update(Request $request, $userId)
 {
-    $artist = Artist::where('id', $id)->with('user')->firstOrFail($id);
+    // Fetch artist by user_id
+    $artist = Artist::with('user')->where('user_id', $userId)->firstOrFail();
 
     try {
+        // Ownership check (optional, safer)
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
                 'error' => 'Unauthorized to update this profile.'
             ], 403);
         }
 
+        // Validate input
         $validated = $request->validate([
             'name'        => 'sometimes|required|string|max:255',
             'genre'       => 'nullable|string',
@@ -155,16 +158,13 @@ public function update(Request $request,$id)
             if ($artist->image) {
                 Storage::disk('public')->delete($artist->image);
             }
-
             $artist->image = $this->saveBase64Image($request->image, 'artist/images');
         }
 
-        // Handle Base64 cover photo
         if ($request->cover_photo) {
             if ($artist->cover_photo) {
                 Storage::disk('public')->delete($artist->cover_photo);
             }
-
             $artist->cover_photo = $this->saveBase64Image($request->cover_photo, 'artist/covers');
         }
 
@@ -189,6 +189,7 @@ public function update(Request $request,$id)
         ], 500);
     }
 }
+
 
 /**
  * Save Base64 encoded image to storage and return path
