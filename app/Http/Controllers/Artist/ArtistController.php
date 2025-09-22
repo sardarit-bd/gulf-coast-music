@@ -130,24 +130,17 @@ public function update(Request $request, $id)
 
 
     try {
-
-
-    if (!$artist) {
-                return response()->json([
-                    'message' => 'Artist profile not found.'
-                ], 404);
-    }else{
-                return response()->json([
-                    'message' => 'Artist profile found.'
-                ], 200);
-    }
-
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
                 'message' => 'Unauthorized to update this profile.'
             ], 403);
         }
+
+
+           return response()->json([
+                    'message' => 'Artist profile found.'
+                ], 200);
 
         // Validate input
         $validated = $request->validate([
