@@ -128,6 +128,12 @@ public function update(Request $request, $userId)
     $artist = Artist::with('user')->where('user_id', $userId)->firstOrFail();
 
     try {
+
+return response()->json([
+                'error'   => 'An error occurred while updating the artist profile.',
+                'message' => $request->all(),
+            ], 200);
+
         // Ownership check
         if ($artist->user_id !== Auth::id()) {
             return response()->json([
