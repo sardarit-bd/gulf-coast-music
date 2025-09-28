@@ -11,7 +11,7 @@ class ArtistPhoto extends Model
 
     protected $fillable = [
         'artist_id',
-        'photo_url',
+        'photo',
     ];
 
     // 🔗 Relation: Photo belongs to Artist
