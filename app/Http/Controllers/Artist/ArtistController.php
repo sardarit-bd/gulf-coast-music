@@ -200,7 +200,7 @@ public function updateProfile(Request $request, $id)
         // Refresh and add full URL
         $artist->refresh();
         $artist->image_url = $artist->image ? asset('storage/'.$artist->image) : null;
-        $artist->cover_photo_url = $artist->cover_photo ? asset('storage/'.$artist->cover_photo) : null;
+        $artist->cover_photo_url = $artist->cover_photo ? 'storage/'.$artist->cover_photo : null;
 
         return response()->json([
             'data'    => $artist,
