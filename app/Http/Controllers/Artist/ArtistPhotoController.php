@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\Artist;
-
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Models\ArtistPhoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ArtistPhotoController extends Controller
 {
@@ -111,7 +112,7 @@ public function store(Request $request)
             'message' => $e->errors(),
         ], 422);
     } catch (\Exception $e) {
-        \Log::error('Photo upload error: '.$e->getMessage(), [
+        Log::error('Photo upload error: '.$e->getMessage(), [
             'trace' => $e->getTraceAsString()
         ]);
 
@@ -142,7 +143,7 @@ protected function storeBase64Image(string $base64Image, string $folder)
     $fileName = uniqid() . '.png';
     $filePath = $folder . '/' . $fileName;
 
-    if (!\Storage::disk('public')->put($filePath, $imageData)) {
+    if (!Storage::disk('public')->put($filePath, $imageData)) {
         throw new \Exception('Failed to save image');
     }
 
