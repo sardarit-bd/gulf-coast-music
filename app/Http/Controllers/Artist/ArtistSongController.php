@@ -48,14 +48,8 @@ class ArtistSongController extends Controller
 
             $artist = Auth::user()->artist;
 
-            $path = null;
-            if ($request->hasFile('file')) {
-                $path = $request->file('file')->store('artist/songs', 'public');
-            }
-
             $song = $artist->songs()->create([
                 'title'     => $validated['title'],
-                'file_path' => $path,
                 'link'      => $validated['link'] ?? null,
             ]);
 
