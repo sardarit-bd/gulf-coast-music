@@ -47,7 +47,7 @@ class ArtistPhotoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:2048'
+            'image' => 'required|image'
         ]);
 
         $path = $request->file('image')->store('artist/photos', 'public');
