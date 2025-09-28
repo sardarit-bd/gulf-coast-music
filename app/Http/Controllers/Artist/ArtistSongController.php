@@ -44,7 +44,7 @@ public function store(Request $request)
         // ✅ Validation
         $validated = $request->validate([
             'title'    => 'required|string|max:255',
-            'mp3_url'  => 'nullable|url'
+            'link'  => 'nullable|url'
         ]);
 
         // ✅ Get logged-in user's artist profile
@@ -60,7 +60,7 @@ public function store(Request $request)
         // ✅ Create song under the artist
         $song = $artist->songs()->create([
             'title'    => $validated['title'],
-            'mp3_url'  => $validated['mp3_url'] ?? null,
+            'mp3_url'  => $validated['link'] ?? null,
         ]);
 
         return response()->json([
