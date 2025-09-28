@@ -78,7 +78,7 @@ public function store(Request $request)
         // ✅ Save DB record
         $photo = $artist->photos()->create([
             'artist_id' => $artist->id,
-            'photo_url' => $path
+            'photo' => $path
         ]);
 
         // ✅ Return full URL in response
