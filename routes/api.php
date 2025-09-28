@@ -63,8 +63,4 @@ Route::post('/printify/products', [PrintifyController::class, 'addProduct']);
 // Orders
 Route::get('/printify/orders', [PrintifyController::class, 'getOrders']);
 
-
-
-
-
 });

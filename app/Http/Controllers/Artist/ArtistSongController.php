@@ -43,7 +43,6 @@ class ArtistSongController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'file'  => 'nullable|mimes:mp3,wav,ogg|max:10240', // max 10MB
                 'link'  => 'nullable|url'
             ]);
 
