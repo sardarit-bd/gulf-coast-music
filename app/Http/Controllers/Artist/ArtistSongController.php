@@ -41,7 +41,9 @@ class ArtistSongController extends Controller
     public function store(Request $request)
     {
         return response()->json([
-            'success' => $request->all(),
+            'data'    => [
+                'request' => $request->all()
+                ],
         ]);
         try {
             $validated = $request->validate([
