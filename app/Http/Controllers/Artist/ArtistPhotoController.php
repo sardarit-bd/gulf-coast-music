@@ -71,16 +71,25 @@ public function store(Request $request)
             'image' => 'required|string'
         ]);
 
-        // ✅ Convert base64 to file and save
-        $path = $this->storeBase64Image($request->input('image'), 'artist/photos');
+        // ✅ Convert base64 to file and store
+        $imageData = $request->input('image');
+        $path = $this->storeBase64Image($imageData, 'artist/photos');
 
+        // ✅ Save DB record
         $photo = $artist->photos()->create([
             'path' => $path
         ]);
 
+        // ✅ Return full URL in response
+        $photoUrl = asset('storage/' . $photo->path);
+
         return response()->json([
             'data' => [
-                'photo' => $photo
+                'photo' => [
+                    'id'   => $photo->id,
+                    'url'  => $photoUrl,
+                    'path' => $photo->path
+                ]
             ],
             'success' => true,
             'status' => 201,
@@ -107,6 +116,31 @@ public function store(Request $request)
     }
 }
 
+/**
+ * Convert base64 image to file and save in storage, return path
+ */
+protected function storeBase64Image(string $base64Image, string $folder)
+{
+    // Remove base64 prefix if present
+    $base64Image = preg_replace('/^data:image\/\w+;base64,/', '', $base64Image);
+    $base64Image = str_replace(' ', '+', $base64Image);
+
+    $imageData = base64_decode($base64Image);
+    if ($imageData === false) {
+        throw new \Exception('Invalid base64 image data');
+    }
+
+    // Generate unique file name (png default)
+    $fileName = uniqid() . '.png';
+    $filePath = $folder . '/' . $fileName;
+
+    if (!\Storage::disk('public')->put($filePath, $imageData)) {
+        throw new \Exception('Failed to save image');
+    }
+
+    return $filePath;
+}
+
 
     public function destroy(ArtistPhoto $photo)
     {
@@ -118,42 +152,5 @@ public function store(Request $request)
 
         return response()->json(['message' => 'Photo deleted successfully.'], 200);
     }
-
-
-
-
-
-
-    // Handle base 64 image
-    /**
- * Handle base64 image, save as file, return storage path
- */
-protected function storeBase64Image(string $base64Image, string $folder)
-{
-    // ✅ Detect and remove base64 prefix if exists
-    if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
-        $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
-        $extension = strtolower($type[1]); // jpg, png, gif
-    } else {
-        // default to png if no prefix
-        $extension = 'png';
-    }
-
-    $base64Image = str_replace(' ', '+', $base64Image);
-    $imageData = base64_decode($base64Image);
-
-    if ($imageData === false) {
-        throw new \Exception('Base64 decode failed');
-    }
-
-    // ✅ Generate unique file name
-    $fileName = uniqid() . '.' . $extension;
-    $filePath = $folder . '/' . $fileName;
-
-    // ✅ Save file in storage/app/public
-    \Storage::disk('public')->put($filePath, $imageData);
-
-    return $filePath;
-}
 
 }
