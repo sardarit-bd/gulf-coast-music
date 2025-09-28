@@ -164,7 +164,6 @@ public function updateProfile(Request $request, $id)
             try {
                 $artist->user->update([
                     'name'  => $validated['name'] ?? $artist->user->name,
-                    'email' => $validated['email'] ?? $artist->user->email,
                 ]);
             } catch (\Exception $e) {
                 Log::error("User update failed for Artist ID {$artist->id}: ".$e->getMessage());
