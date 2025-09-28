@@ -17,7 +17,6 @@ Route::get('/cc', function () {
     Artisan::call('config:cache');
     //storage link
     Artisan::call('storage:link');
-    // Return epic view
-    return view('cc-epic');
+    return 'Done';
 });
 

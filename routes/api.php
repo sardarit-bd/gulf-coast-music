@@ -57,11 +57,9 @@ Route::middleware('auth:api')->group(function () {
     //==================================================================================
     // Shop
 Route::get('/printify/shop', [PrintifyController::class, 'getShop']);
-
 // Products
 Route::get('/printify/products', [PrintifyController::class, 'getProducts']);
 Route::post('/printify/products', [PrintifyController::class, 'addProduct']);
-
 // Orders
 Route::get('/printify/orders', [PrintifyController::class, 'getOrders']);
 
