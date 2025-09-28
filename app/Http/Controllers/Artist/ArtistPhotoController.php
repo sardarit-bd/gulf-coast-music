@@ -9,39 +9,46 @@ use Illuminate\Support\Facades\Auth;
 
 class ArtistPhotoController extends Controller
 {
-    public function index()
-    {
-        try {
-            $artist = Auth::user()->artist;
+public function index()
+{
+    try {
+        $artist = Auth::user()->artist;
 
-            if (!$artist) {
-                return response()->json([
-                    'error'   => 'Artist profile not found.',
-                    'success' => false,
-                    'status'  => 404,
-                    'message' => 'Please create an artist profile first.'
-                ], 404);
-            }
-
-            $photos = $artist->photos;
-
+        if (!$artist) {
             return response()->json([
-                'data' => [
-                    'photos' => url('').'/public'.'/'.$photos,
-                ],
-                'success' => true,
-                'status' => 200,
-                'message' => 'Photos fetched successfully.'
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'An error occurred while fetching photos.',
+                'error'   => 'Artist profile not found.',
                 'success' => false,
-                'status'  => 500,
-                'message' => $e->getMessage()
-            ], 500);
+                'status'  => 404,
+                'message' => 'Please create an artist profile first.'
+            ], 404);
         }
+
+        $photos = $artist->photos->map(function($photo) {
+            return [
+                'id'  => $photo->id,
+                'url' => asset('storage/' . $photo->photo_url)
+            ];
+        });
+
+        return response()->json([
+            'data' => [
+                'photos' => $photos
+            ],
+            'success' => true,
+            'status' => 200,
+            'message' => 'Photos fetched successfully.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'   => 'An error occurred while fetching photos.',
+            'success' => false,
+            'status'  => 500,
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
+
 
 
 public function store(Request $request)
