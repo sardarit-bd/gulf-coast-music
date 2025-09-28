@@ -175,7 +175,6 @@ public function updateProfile(Request $request, $id)
             if (isset($validated[$field])) {
                 $newValue = $validated[$field];
 
-                // Check if base64 string
                 if (str_starts_with($newValue, 'data:image')) {
                     // Delete old file if exists
                     if ($artist->$field) {
@@ -188,10 +187,13 @@ public function updateProfile(Request $request, $id)
                     // Keep existing path
                     $artist->$field = $newValue;
                 }
+
+                // Remove from validated so fill() does not overwrite
+                unset($validated[$field]);
             }
         }
 
-        // Update other fields
+        // Update other fields safely
         $artist->fill($validated);
         $artist->save();
 
@@ -218,6 +220,7 @@ public function updateProfile(Request $request, $id)
         ], 500);
     }
 }
+
 
 /**
  * Save Base64 image to storage and return relative path
