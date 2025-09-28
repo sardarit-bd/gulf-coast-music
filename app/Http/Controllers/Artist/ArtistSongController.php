@@ -38,42 +38,53 @@ class ArtistSongController extends Controller
     /**
      * Store a new song for the authenticated artist.
      */
-    public function store(Request $request)
-    {
-        return response()->json([
-            'data'    => [
-                'request' => $request->all()
-                ],
+public function store(Request $request)
+{
+    try {
+        // ✅ Validation
+        $validated = $request->validate([
+            'title'    => 'required|string|max:255',
+            'mp3_url'  => 'nullable|url'
         ]);
-        try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'link'  => 'nullable|url'
-            ]);
 
-            $artist = Auth::user()->artist;
+        // ✅ Get logged-in user's artist profile
+        $artist = Auth::user()->artist;
 
-            $song = $artist->songs()->create([
-                'title'     => $validated['title'],
-                'mp3_url'      => $validated['link'] ?? null,
-            ]);
-
+        if (!$artist) {
             return response()->json([
-                'message' => 'Song added successfully.',
-                'data'    => $song
-            ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'error'   => 'Validation failed',
-                'message' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'Failed to add song.',
-                'message' => $e->getMessage()
-            ], 500);
+                'error'   => 'Artist not found',
+                'message' => 'This user does not have an artist profile.'
+            ], 404);
         }
+
+        // ✅ Create song under the artist
+        $song = $artist->songs()->create([
+            'title'    => $validated['title'],
+            'mp3_url'  => $validated['mp3_url'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Song added successfully.',
+            'data'    => $song
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'error'   => 'Validation failed',
+            'message' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Song store error: '.$e->getMessage(), [
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'error'   => 'Failed to add song.',
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
+
 
     /**
      * Delete a song.
