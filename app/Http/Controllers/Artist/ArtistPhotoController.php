@@ -27,7 +27,7 @@ class ArtistPhotoController extends Controller
 
             return response()->json([
                 'data' => [
-                    'photos' => url('public/'.$photos),
+                    'photos' => $photos,
                 ],
                 'success' => true,
                 'status' => 200,
