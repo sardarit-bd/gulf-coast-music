@@ -26,7 +26,7 @@ public function index()
         $photos = $artist->photos->map(function($photo) {
             return [
                 'id'  => $photo->id,
-                'url' => asset('storage/' . $photo->photo_url)
+                'url' => asset('storage/' . $photo->photo)
             ];
         });
 
