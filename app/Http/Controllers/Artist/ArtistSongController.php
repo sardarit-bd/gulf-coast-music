@@ -50,7 +50,7 @@ class ArtistSongController extends Controller
 
             $song = $artist->songs()->create([
                 'title'     => $validated['title'],
-                'link'      => $validated['link'] ?? null,
+                'mp3_url'      => $validated['link'] ?? null,
             ]);
 
             return response()->json([
