@@ -44,7 +44,87 @@ class ArtistPhotoController extends Controller
     }
 
 
-public function store(Request $request)
+    public function store(Request $request)
+    {
+        try {
+            $artist = Auth::user()->artist;
+
+            if (!$artist) {
+                return response()->json([
+                    'success' => false,
+                    'status'  => 404,
+                    'message' => 'Artist not found.'
+                ], 404);
+            }
+
+            // ✅ Check max 5 photos
+            if ($artist->photos()->count() >= 5) {
+                return response()->json([
+                    'success' => false,
+                    'status'  => 400,
+                    'message' => 'You can upload a maximum of 5 photos only.'
+                ], 400);
+            }
+
+            // ✅ For file uploads (multipart/form-data)
+            $request->validate([
+                'image' => 'required|image'
+            ]);
+
+            $path = $request->file('image')->store('artist/photos', 'public');
+
+            $photo = $artist->photos()->create([
+                'path' => $path
+            ]);
+
+            return response()->json([
+                'data' => [
+                    'photo' => $photo
+                ],
+                'success' => true,
+                'status' => 201,
+                'message' => 'Photo uploaded successfully.',
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'status'  => 422,
+                'message' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Photo upload error: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'status'  => 500,
+                'message' => 'Failed to upload photo.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function destroy(ArtistPhoto $photo)
+    {
+        if ($photo->artist_id !== Auth::user()->artist->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $photo->delete();
+
+        return response()->json(['message' => 'Photo deleted successfully.'], 200);
+    }
+
+
+
+
+
+
+    // Handle base 64 image
+    public function storeBase64(Request $request)
 {
     try {
         $artist = Auth::user()->artist;
@@ -68,21 +148,18 @@ public function store(Request $request)
 
         // ✅ Validate base64 input
         $request->validate([
-            'image' => 'required|string' // expecting base64 string
+            'image' => 'required|string'
         ]);
 
         $imageData = $request->input('image');
 
-        // ✅ Extract base64 content (remove "data:image/*;base64," if present)
+        // ✅ Extract type if prefix exists
         if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
             $imageData = substr($imageData, strpos($imageData, ',') + 1);
-            $extension = strtolower($type[1]); // jpg, png, gif
+            $extension = strtolower($type[1]);
         } else {
-            return response()->json([
-                'success' => false,
-                'status'  => 422,
-                'message' => 'Invalid image format.'
-            ], 422);
+            // default to png
+            $extension = 'png';
         }
 
         $imageData = str_replace(' ', '+', $imageData);
@@ -92,18 +169,16 @@ public function store(Request $request)
             return response()->json([
                 'success' => false,
                 'status'  => 422,
-                'message' => 'Base64 decoding failed.'
+                'message' => 'Invalid base64 image data.'
             ], 422);
         }
 
-        // ✅ Generate unique file name
+        // ✅ Generate file name & save
         $fileName = uniqid().'.'.$extension;
         $filePath = 'artist/photos/'.$fileName;
 
-        // ✅ Save to storage/app/public/artist/photos
         \Storage::disk('public')->put($filePath, $image);
 
-        // ✅ Save to DB
         $photo = $artist->photos()->create([
             'path' => $filePath
         ]);
@@ -124,7 +199,7 @@ public function store(Request $request)
             'message' => $e->errors(),
         ], 422);
     } catch (\Exception $e) {
-        \Log::error('Photo upload error: '.$e->getMessage(), [
+        \Log::error('Photo upload (base64) error: '.$e->getMessage(), [
             'trace' => $e->getTraceAsString()
         ]);
 
@@ -137,15 +212,4 @@ public function store(Request $request)
     }
 }
 
-
-    public function destroy(ArtistPhoto $photo)
-    {
-        if ($photo->artist_id !== Auth::user()->artist->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $photo->delete();
-
-        return response()->json(['message' => 'Photo deleted successfully.'], 200);
-    }
 }
