@@ -28,8 +28,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('user/pending',[ProfileAcivitionController::class,'pendingProfiles']);
     Route::get('user/activate/{id}',[ProfileAcivitionController::class,'activateProfile']);
 
-
-
     //===================================Artist Routes===================================
     Route::apiResource('artists', ArtistController::class);
     // updating artist
@@ -37,7 +35,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('photos', ArtistPhotoController::class);
     Route::apiResource('songs', ArtistSongController::class);
 
-    //===================================Journalist Routes===================================
+    //===================================Journalist Routes================================
     Route::apiResource('journalists', JournalistController::class);
     Route::apiResource('news', NewsController::class);
     Route::prefix('news/{news}/photos')->group(function () {
