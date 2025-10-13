@@ -62,3 +62,5 @@ Route::post('/printify/products', [PrintifyController::class, 'addProduct']);
 Route::get('/printify/orders', [PrintifyController::class, 'getOrders']);
 
 });
+
+Route::get('all-events', [EventController::class, 'index']);
