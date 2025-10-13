@@ -64,3 +64,4 @@ Route::get('/printify/orders', [PrintifyController::class, 'getOrders']);
 });
 
 Route::get('all-events', [EventController::class, 'index']);
+Route::get('event/{id}', [EventController::class, 'show']);
