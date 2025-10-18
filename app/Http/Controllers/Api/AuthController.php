@@ -193,11 +193,16 @@ public function login(Request $request)
      * POST /api/auth/logout  (protected)
      * Invalidates the current token.
      */
-    public function logout(Request $request)
+    public function logout()
     {
-        $request->user()->token()->revoke();
         auth('api')->logout();
-        return response()->json(['message' => 'Logged out']);
+
+        return response()->json([
+            'success' => true,
+            'status'  => 200,
+            'message' => 'Logged out successfully',
+            'data'    => null,
+        ], 200);
     }
 
     /**
