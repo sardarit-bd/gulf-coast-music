@@ -16,8 +16,8 @@ use App\Http\Controllers\Admin\PrintifyController;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login',    [AuthController::class, 'login']);
 
-Route::middleware('auth:api')->group(function () {
-    Route::get('authcheck', function() {
+Route::middleware('jwt.auth')->group(function () {
+    Route::get('/authcheck', function() {
         return response()->json([
             'success' => true,
             'status'  => 200,

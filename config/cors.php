@@ -14,5 +14,5 @@ return [
 
     'exposed_headers' => ['Authorization'],
 
-    'supports_credentials' => false, // JWT = false is fine
+    'supports_credentials' => false,
 ];
