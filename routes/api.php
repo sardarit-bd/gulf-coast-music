@@ -17,6 +17,14 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login',    [AuthController::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
+    Route::get('authcheck', function() {
+        return response()->json([
+            'success' => true,
+            'status'  => 200,
+            'message' => 'You are authenticated',
+            'data'    => null,
+        ], 200);
+    });
     Route::get('me',            [AuthController::class, 'me']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('logout',  [AuthController::class, 'logout']);
