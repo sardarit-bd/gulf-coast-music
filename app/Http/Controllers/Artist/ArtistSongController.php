@@ -71,6 +71,29 @@ class ArtistSongController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->files->has('audio')) {
+    $f = $request->file('audio');
+    \Log::warning('Upload debug', [
+        'hasFile'      => $request->hasFile('audio'),
+        'is_valid'     => $f?->isValid(),
+        'error_code'   => $f?->getError(),                // 1 or 2 => size limits
+        'error_msg'    => $f?->getErrorMessage(),         // Laravel 10+
+        'size'         => $f?->getSize(),
+        'client_name'  => $f?->getClientOriginalName(),
+        'client_mime'  => $f?->getClientMimeType(),
+        'php_ini'      => [
+            'upload_max_filesize' => ini_get('upload_max_filesize'),
+            'post_max_size'       => ini_get('post_max_size'),
+            'memory_limit'        => ini_get('memory_limit'),
+        ],
+    ]);
+} else {
+    \Log::warning('No audio in $request->files bag at all', [
+        'content_type' => $request->header('Content-Type'),
+        'keys'         => array_keys($request->all() ?? []),
+    ]);
+}
+
 
         if (!$request->hasFile('audio')) {
             \Log::warning('No audio file on request', [
