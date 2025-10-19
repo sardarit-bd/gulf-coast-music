@@ -126,128 +126,148 @@ class ArtistController extends Controller
      * Update the specified artist profile.
      */
 
-public function updateProfile(Request $request, $id)
-{
-    try {
-        $artist = Artist::with('user')->findOrFail($id);
+    public function updateProfile(Request $request, $id)
+    {
+        try {
+            $artist = Artist::with('user')->findOrFail($id);
 
-        // Ownership check
-        if ($artist->user_id !== Auth::id()) {
-            return response()->json([
-                'message' => 'Unauthorized to update this profile.'
-            ], 403);
-        }
+            if ($artist->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Unauthorized to update this profile.'], 403);
+            }
 
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'name'        => 'sometimes|required|string|max:255',
-            'email'       => 'sometimes|required|email|max:255',
-            'genre'       => 'nullable|string|max:255',
-            'bio'         => 'nullable|string',
-            'city'        => 'nullable|string|max:255',
-            'image'       => 'nullable|string',       // Base64 or existing path
-            'cover_photo' => 'nullable|string',       // Base64 or existing path
-        ]);
+            // Accept file upload OR base64 OR keep existing
+            $validator = Validator::make($request->all(), [
+                'name'        => 'sometimes|required|string|max:255',
+                'email'       => 'sometimes|email|max:255',
+                'genre'       => 'nullable|string|max:255',
+                'bio'         => 'nullable|string',
+                'city'        => 'nullable|string|max:255',
 
-        if ($validator->fails()) {
-            return response()->json([
-                'error'   => 'Validation failed',
-                'message' => $validator->errors(),
-            ], 422);
-        }
-
-        $validated = $validator->validated();
-
-        // Update user info (name & email)
-        if ($artist->user) {
-            $artist->user->update([
-                'name' => $validated['name'] ?? $artist->user->name,
+                // allow either file uploads or strings (base64/existing path)
+                'image'       => 'nullable',
+                'cover_photo' => 'nullable',
             ]);
-        }
 
-        // Handle base64 images
-        $imageFields = [
-            'image' => 'artist/images',
-            'cover_photo' => 'artist/covers'
-        ];
+            if ($validator->fails()) {
+                return response()->json(['error' => 'Validation failed', 'message' => $validator->errors()], 422);
+            }
 
-        foreach ($imageFields as $field => $folder) {
-            if (isset($validated[$field])) {
-                $newValue = $validated[$field];
+            $validated = $validator->validated();
 
-                if (str_starts_with($newValue, 'data:image')) {
-                    // Delete old file if exists
+            // --- Update user profile fields ---
+            if ($artist->user) {
+                $artist->user->update([
+                    'name'  => $validated['name']  ?? $artist->user->name,
+                    // uncomment if you actually want to allow changing email on User:
+                    // 'email' => $validated['email'] ?? $artist->user->email,
+                ]);
+            }
+
+            // --- Handle images (file upload or base64 or keep) ---
+            $imageMap = [
+                'image'       => 'artist/images',
+                'cover_photo' => 'artist/covers',
+            ];
+
+            foreach ($imageMap as $field => $folder) {
+                // Case A: real file uploaded (multipart/form-data)
+                if ($request->hasFile($field)) {
+                    // delete old
                     if ($artist->$field) {
                         Storage::disk('public')->delete($artist->$field);
                     }
-
-                    // Save new image and get file path
-                    $artist->$field = $this->saveBase64Image($newValue, $folder);
-                } else {
-                    // Keep existing path
-                    $artist->$field = $newValue;
+                    $path = $request->file($field)->store($folder, 'public'); // returns relative path
+                    $artist->$field = $path;
+                    unset($validated[$field]);
+                    continue;
                 }
 
-                // Remove from validated so fill() does not overwrite
-                unset($validated[$field]);
+                // Case B: base64 string sent
+                if (isset($validated[$field]) && is_string($validated[$field])) {
+                    $val = $validated[$field];
+
+                    if (str_starts_with($val, 'data:image')) {
+                        if ($artist->$field) {
+                            Storage::disk('public')->delete($artist->$field);
+                        }
+                        $artist->$field = $this->saveBase64Image($val, $folder); // returns relative path
+                    } else {
+                        // If they passed an existing relative path (e.g. "artist/images/xxx.png"), keep it.
+                        // If they passed a full URL ("https://.../storage/artist/images/xxx.png"), strip to storage-relative.
+                        if (str_starts_with($val, 'http')) {
+                            // try to extract after "/storage/"
+                            $pos = strpos($val, '/storage/');
+                            if ($pos !== false) {
+                                $artist->$field = ltrim(substr($val, $pos + strlen('/storage/')), '/');
+                            } else {
+                                // Unknown URL -> keep old value instead of corrupting
+                                $artist->$field = $artist->$field;
+                            }
+                        } else {
+                            // assume already a storage-relative path
+                            $artist->$field = ltrim($val, '/');
+                            // Avoid accidental "storage/storage/..." later
+                            $artist->$field = preg_replace('#^storage/#', '', $artist->$field);
+                        }
+                    }
+
+                    unset($validated[$field]); // prevent fill from overwriting
+                }
             }
+
+            // --- Update other non-image fields ---
+            $artist->fill($validated);
+            $artist->save();
+
+            // --- Fresh URLs using Storage::url (works with storage:link) ---
+            $artist->refresh();
+            $artist->image_url       = $artist->image       ? Storage::url($artist->image)       : null;
+            $artist->cover_photo_url = $artist->cover_photo ? Storage::url($artist->cover_photo) : null;
+
+            return response()->json([
+                'data'    => $artist,
+                'success' => true,
+                'status'  => 200,
+                'message' => 'Artist profile updated successfully.',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Update profile failed for Artist ID {$id}: ".$e->getMessage(), ['request' => $request->all()]);
+            return response()->json([
+                'error'   => 'An error occurred while updating the artist profile.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+    /**
+     * Save Base64 image to storage and return relative path
+     */
+    private function saveBase64Image($base64Image, $folder)
+    {
+        if (!preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+            throw new \Exception('Invalid base64 image');
         }
 
-        // Update other fields safely
-        $artist->fill($validated);
-        $artist->save();
+        $imageData = substr($base64Image, strpos($base64Image, ',') + 1);
+        $imageData = str_replace(' ', '+', $imageData);
+        $decoded = base64_decode($imageData);
 
-        // Refresh and add full URL
-        $artist->refresh();
-        $artist->image_url = $artist->image ? asset('storage/'.$artist->image) : null;
-        $artist->cover_photo_url = $artist->cover_photo ? 'storage/'.$artist->cover_photo : null;
+        if ($decoded === false) {
+            throw new \Exception('Base64 decode failed');
+        }
 
-        return response()->json([
-            'data'    => $artist,
-            'success' => true,
-            'status'  => 200,
-            'message' => 'Artist profile updated successfully.',
-        ]);
+        if (!Storage::disk('public')->exists($folder)) {
+            Storage::disk('public')->makeDirectory($folder);
+        }
 
-    } catch (\Exception $e) {
-        Log::error("Update profile failed for Artist ID {$id}: ".$e->getMessage(), [
-            'request' => $request->all()
-        ]);
+        $fileName = $folder.'/'.substr(uniqid(), 0, 13).'.'.strtolower($type[1]);
+        Storage::disk('public')->put($fileName, $decoded);
 
-        return response()->json([
-            'error'   => 'An error occurred while updating the artist profile.',
-            'message' => $e->getMessage(),
-        ], 500);
+        return $fileName;
     }
-}
-
-
-/**
- * Save Base64 image to storage and return relative path
- */
-private function saveBase64Image($base64Image, $folder)
-{
-    if (!preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
-        throw new \Exception('Invalid base64 image');
-    }
-
-    $imageData = substr($base64Image, strpos($base64Image, ',') + 1);
-    $imageData = str_replace(' ', '+', $imageData);
-    $decoded = base64_decode($imageData);
-
-    if ($decoded === false) {
-        throw new \Exception('Base64 decode failed');
-    }
-
-    if (!Storage::disk('public')->exists($folder)) {
-        Storage::disk('public')->makeDirectory($folder);
-    }
-
-    $fileName = $folder.'/'.substr(uniqid(), 0, 13).'.'.strtolower($type[1]);
-    Storage::disk('public')->put($fileName, $decoded);
-
-    return $fileName;
-}
 
 
     /**
