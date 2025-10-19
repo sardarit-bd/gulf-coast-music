@@ -96,6 +96,8 @@ class ArtistSongController extends Controller
                 'mp3_url' => $path,
             ]);
 
+             Log::info('Song store request received', ['user_id' => Auth::id()]);
+
             $song->file_url = Storage::url($song->mp3_url);
 
             return response()->json([
