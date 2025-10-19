@@ -71,6 +71,22 @@ class ArtistSongController extends Controller
      */
     public function store(Request $request)
     {
+
+        if (!$request->hasFile('audio')) {
+            \Log::warning('No audio file on request', [
+                'content_type' => $request->header('Content-Type'),
+                'all_keys'     => array_keys($request->all() ?? []),
+                'files'        => array_keys($request->allFiles() ?? []),
+            ]);
+            return response()->json([
+                'success' => false,
+                'status'  => 422,
+                'error'   => 'Validation failed',
+                'message' => ['audio' => ['No file received. Ensure multipart/form-data and field name "audio".']]
+            ], 422);
+        }
+
+
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
