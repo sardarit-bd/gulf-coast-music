@@ -216,7 +216,7 @@ class ArtistSongController extends Controller
             }
 
             $song->delete();
-
+            // Log deletion
             return response()->json([
                 'success' => true,
                 'status'  => 200,
