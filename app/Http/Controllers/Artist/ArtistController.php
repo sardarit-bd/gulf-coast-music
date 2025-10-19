@@ -181,7 +181,6 @@ class ArtistController extends Controller
                     unset($validated[$field]);
                     continue;
                 }
-
                 // Case B: base64 string sent
                 if (isset($validated[$field]) && is_string($validated[$field])) {
                     $val = $validated[$field];
@@ -239,8 +238,6 @@ class ArtistController extends Controller
             ], 500);
         }
     }
-
-
 
     /**
      * Save Base64 image to storage and return relative path
