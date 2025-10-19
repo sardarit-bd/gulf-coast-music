@@ -99,7 +99,7 @@ public function store(Request $request)
         // ---------- Validate basic fields ----------
         // We accept either: (A) multipart file OR (B) base64 string.
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'string|max:255',
         ]);
 
         $artist = Auth::user()->artist;
