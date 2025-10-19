@@ -74,7 +74,7 @@ class ArtistSongController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'audio' => 'required|file|mimes:mp3,wav,ogg|max:20480', // 20MB
+                'audio' => 'required|file|mimes:mp3,wav,mp4,ogg|max:20480',
             ]);
 
             $artist = Auth::user()->artist;
