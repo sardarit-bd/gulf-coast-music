@@ -134,6 +134,8 @@ class ArtistSongController extends Controller
             'audio' => 'required|string', // base64 string
         ]);
 
+        Log::error('Base64 audio upload attempt', ['user_id' => Auth::id()]);
+
         $artist = Auth::user()->artist;
         if (!$artist) {
             return response()->json([
