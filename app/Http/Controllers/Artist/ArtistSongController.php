@@ -128,7 +128,8 @@ class ArtistSongController extends Controller
     public function store(Request $request)
 {
     try {
-        Log::error('Base64 audio upload attempt', ['user_id' => Auth::id()]);
+        Log::error('Base64 audio upload attempt', ['Request' => $request->all()]);
+
         // Validate title + base64 audio string
         $validated = $request->validate([
             'title' => 'required|string|max:255',
