@@ -72,6 +72,7 @@ class ArtistSongController extends Controller
     public function store(Request $request)
     {
         try {
+            Log::info('Song store request received', ['user_id' => Auth::id()]);
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'audio' => 'required|file|mimes:mp3,wav,mp4,ogg|max:20480',
