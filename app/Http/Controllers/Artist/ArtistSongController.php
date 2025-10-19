@@ -90,7 +90,7 @@ public function store(Request $request)
 
         Log::info('Post-merge payload snapshot', [
             'keys'       => array_keys($request->all() ?? []),
-            'title_len'  => strlen((string) $request->input('title')),
+            'title_len'  => strlen((string) $request->title),
             'audio_len'  => strlen((string) $request->input('audio')),
             'has_file'   => $request->hasFile('audio'),
             'files_keys' => array_keys($request->allFiles() ?? []),
@@ -149,7 +149,7 @@ public function store(Request $request)
 
         // Create DB row
         $song = $artist->songs()->create([
-            'title'   => $request->input('title'),
+            'title'   => $request->title,
             'mp3_url' => $path, // relative
         ]);
 
