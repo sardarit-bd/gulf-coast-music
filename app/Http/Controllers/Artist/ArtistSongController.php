@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Str;
+use Illuminate\Support\Str;
 
 class ArtistSongController extends Controller
 {
@@ -65,72 +65,11 @@ class ArtistSongController extends Controller
         }
     }
 
-    /**
-     * POST /api/artist/songs
-     * Store a new song for the authenticated artist (multipart/form-data).
-     * Body: title (string), audio (file: mp3|wav|ogg)
-     */
-    // public function store(Request $request)
-    // {
-    //     try {
-    //         $validated = $request->validate([
-    //             'title' => 'required|string|max:255',
-    //             'audio' => 'required|file|mimes:mp3,wav,mp4,ogg|max:20480',
-    //         ]);
-
-    //         $artist = Auth::user()->artist;
-    //         if (!$artist) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'status'  => 404,
-    //                 'error'   => 'Artist not found',
-    //                 'message' => 'This user does not have an artist profile.',
-    //             ], 404);
-    //         }
-
-    //         // Store file to public disk, keep relative path in DB
-    //         $path = $request->file('audio')->store("artist/{$artist->id}/songs", 'public');
-    //         Log::info('Song audio uploaded', ['user_id' => Auth::id(), 'path' => $path]);
-
-    //         $song = $artist->songs()->create([
-    //             'title'   => $validated['title'],
-    //             'mp3_url' => $path,
-    //         ]);
-
-
-    //         $song->file_url = Storage::url($song->mp3_url);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'status'  => 201,
-    //             'message' => 'Song added successfully.',
-    //             'data'    => $song,
-    //         ], 201);
-
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'status'  => 422,
-    //             'error'   => 'Validation failed',
-    //             'message' => $e->errors(),
-    //         ], 422);
-    //     } catch (\Exception $e) {
-    //         Log::error('Song store error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-    //         return response()->json([
-    //             'success' => false,
-    //             'status'  => 500,
-    //             'error'   => 'Failed to add song.',
-    //             'message' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
-
-
-public function store(Request $request)
-{
-    try {
-        // ---------- Fallback: raw JSON merge if Laravel didn't parse ----------
-        // Some clients send 'text/plain' with a JSON string. Laravel won't parse that.
+    public function store(Request $request)
+    {
+        try {
+            // ---------- Fallback: raw JSON merge if Laravel didn't parse ----------
+            // Some clients send 'text/plain' with a JSON string. Laravel won't parse that.
         if (empty($request->all())) {
             $ct = $request->header('Content-Type', '');
             if (str_contains($ct, 'text/plain') || str_contains($ct, 'application/json')) {
