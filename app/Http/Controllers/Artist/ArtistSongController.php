@@ -69,99 +69,120 @@ class ArtistSongController extends Controller
      * Store a new song for the authenticated artist (multipart/form-data).
      * Body: title (string), audio (file: mp3|wav|ogg)
      */
+    // public function store(Request $request)
+    // {
+    //     try {
+    //         $validated = $request->validate([
+    //             'title' => 'required|string|max:255',
+    //             'audio' => 'required|file|mimes:mp3,wav,mp4,ogg|max:20480',
+    //         ]);
+
+    //         $artist = Auth::user()->artist;
+    //         if (!$artist) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'status'  => 404,
+    //                 'error'   => 'Artist not found',
+    //                 'message' => 'This user does not have an artist profile.',
+    //             ], 404);
+    //         }
+
+    //         // Store file to public disk, keep relative path in DB
+    //         $path = $request->file('audio')->store("artist/{$artist->id}/songs", 'public');
+    //         Log::info('Song audio uploaded', ['user_id' => Auth::id(), 'path' => $path]);
+
+    //         $song = $artist->songs()->create([
+    //             'title'   => $validated['title'],
+    //             'mp3_url' => $path,
+    //         ]);
+
+
+    //         $song->file_url = Storage::url($song->mp3_url);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'status'  => 201,
+    //             'message' => 'Song added successfully.',
+    //             'data'    => $song,
+    //         ], 201);
+
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'status'  => 422,
+    //             'error'   => 'Validation failed',
+    //             'message' => $e->errors(),
+    //         ], 422);
+    //     } catch (\Exception $e) {
+    //         Log::error('Song store error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+    //         return response()->json([
+    //             'success' => false,
+    //             'status'  => 500,
+    //             'error'   => 'Failed to add song.',
+    //             'message' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+
     public function store(Request $request)
-    {
-        if ($request->files->has('audio')) {
-    $f = $request->file('audio');
-    \Log::warning('Upload debug', [
-        'hasFile'      => $request->hasFile('audio'),
-        'is_valid'     => $f?->isValid(),
-        'error_code'   => $f?->getError(),                // 1 or 2 => size limits
-        'error_msg'    => $f?->getErrorMessage(),         // Laravel 10+
-        'size'         => $f?->getSize(),
-        'client_name'  => $f?->getClientOriginalName(),
-        'client_mime'  => $f?->getClientMimeType(),
-        'php_ini'      => [
-            'upload_max_filesize' => ini_get('upload_max_filesize'),
-            'post_max_size'       => ini_get('post_max_size'),
-            'memory_limit'        => ini_get('memory_limit'),
-        ],
-    ]);
-} else {
-    \Log::warning('No audio in $request->files bag at all', [
-        'content_type' => $request->header('Content-Type'),
-        'keys'         => array_keys($request->all() ?? []),
-    ]);
+{
+    try {
+        // Validate title + base64 audio string
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'audio' => 'required|string', // base64 string
+        ]);
+
+        $artist = Auth::user()->artist;
+        if (!$artist) {
+            return response()->json([
+                'success' => false,
+                'status'  => 404,
+                'error'   => 'Artist not found',
+                'message' => 'This user does not have an artist profile.',
+            ], 404);
+        }
+
+        // Save base64 file
+        $path = $this->saveBase64Audio($validated['audio'], "artist/{$artist->id}/songs");
+
+        // Store DB record
+        $song = $artist->songs()->create([
+            'title'   => $validated['title'],
+            'mp3_url' => $path, // relative path (public disk)
+        ]);
+
+        // Add public URL
+        $song->file_url = Storage::url($song->mp3_url);
+
+        return response()->json([
+            'success' => true,
+            'status'  => 201,
+            'message' => 'Song added successfully.',
+            'data'    => $song,
+        ], 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'status'  => 422,
+            'error'   => 'Validation failed',
+            'message' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Song store error: '.$e->getMessage(), [
+            'trace' => $e->getTraceAsString(),
+        ]);
+        return response()->json([
+            'success' => false,
+            'status'  => 500,
+            'error'   => 'Failed to add song.',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
 }
 
-
-        if (!$request->hasFile('audio')) {
-            \Log::warning('No audio file on request', [
-                'content_type' => $request->header('Content-Type'),
-                'all_keys'     => array_keys($request->all() ?? []),
-                'files'        => array_keys($request->allFiles() ?? []),
-            ]);
-            return response()->json([
-                'success' => false,
-                'status'  => 422,
-                'error'   => 'Validation failed',
-                'message' => ['audio' => ['No file received. Ensure multipart/form-data and field name "audio".']]
-            ], 422);
-        }
-
-
-        try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'audio' => 'required|file|mimes:mp3,wav,mp4,ogg|max:20480',
-            ]);
-
-            $artist = Auth::user()->artist;
-            if (!$artist) {
-                return response()->json([
-                    'success' => false,
-                    'status'  => 404,
-                    'error'   => 'Artist not found',
-                    'message' => 'This user does not have an artist profile.',
-                ], 404);
-            }
-
-            // Store file to public disk, keep relative path in DB
-            $path = $request->file('audio')->store("artist/{$artist->id}/songs", 'public');
-            Log::info('Song audio uploaded', ['user_id' => Auth::id(), 'path' => $path]);
-
-            $song = $artist->songs()->create([
-                'title'   => $validated['title'],
-                'mp3_url' => $path,
-            ]);
-
-
-            $song->file_url = Storage::url($song->mp3_url);
-
-            return response()->json([
-                'success' => true,
-                'status'  => 201,
-                'message' => 'Song added successfully.',
-                'data'    => $song,
-            ], 201);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'status'  => 422,
-                'error'   => 'Validation failed',
-                'message' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            Log::error('Song store error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json([
-                'success' => false,
-                'status'  => 500,
-                'error'   => 'Failed to add song.',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
 
     /**
      * DELETE /api/artist/songs/{song}
@@ -212,4 +233,31 @@ class ArtistSongController extends Controller
             ], 500);
         }
     }
+
+
+
+    // base 64 handler
+    private function saveBase64Audio(string $base64String, string $folder): string
+{
+    if (!preg_match('/^data:audio\/(\w+);base64,/', $base64String, $type)) {
+        throw new \Exception('Invalid audio base64 format.');
+    }
+
+    $audioData = substr($base64String, strpos($base64String, ',') + 1);
+    $audioData = str_replace(' ', '+', $audioData);
+    $decoded = base64_decode($audioData);
+
+    if ($decoded === false) {
+        throw new \Exception('Base64 decode failed.');
+    }
+
+    $extension = strtolower($type[1]); // mp3, wav, ogg, etc.
+    $fileName = uniqid('audio_', true) . '.' . $extension;
+    $filePath = "{$folder}/{$fileName}";
+
+    Storage::disk('public')->put($filePath, $decoded);
+
+    return $filePath;
+}
+
 }
