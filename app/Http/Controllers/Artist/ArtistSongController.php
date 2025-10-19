@@ -18,8 +18,7 @@ class ArtistSongController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = Auth::user();
-            $artist = $user?->artist;
+            $artist = Auth::user()?->artist;
 
             if (!$artist) {
                 return response()->json([
@@ -31,7 +30,7 @@ class ArtistSongController extends Controller
                 ], 404);
             }
 
-            $perPage = (int) ($request->query('per_page', 15));
+            $perPage = (int) $request->query('per_page', 15);
             $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
 
             $songs = $artist->songs()->latest('id')->paginate($perPage);
@@ -63,46 +62,26 @@ class ArtistSongController extends Controller
     /**
      * POST /api/artist/songs
      * Accepts:
-     *  - multipart/form-data: audio=<file>, title=<string?>
-     *  - application/json: audio|audio_b64|file|data|payload = base64 (with/without data URI), title=<string?>
+     *  - multipart/form-data: audio=<file>, title?=<string>
+     *  - application/json or text/plain: audio|audio_b64|file|data|payload = base64 (data URI or raw)
+     *  - raw body fallback: JSON, x-www-form-urlencoded, or plain base64 blob
      */
     public function store(Request $request)
     {
         try {
-            // ---- Snapshots ----
+            // ---------- Basic diagnostics ----------
             $raw = $request->getContent() ?? '';
-            Log::info('Incoming upload snapshot', [
-                'content_type' => $request->header('Content-Type'),
-                'content_len'  => (int) $request->header('Content-Length'),
-                'raw_len'      => strlen($raw),
-                'keys_before'  => array_keys($request->all() ?? []),
-                'has_file'     => $request->hasFile('audio'),
-                'files_keys'   => array_keys($request->allFiles() ?? []),
-            ]);
-
-            // ---- Robust merge for text/plain / partially stripped JSON ----
-            if (empty($request->all()) || (!$request->hasFile('audio') && !$request->hasAny(['audio','audio_b64','file','data','payload']))) {
-                $ct = $request->header('Content-Type', '');
-                if (str_contains($ct, 'text/plain') || str_contains($ct, 'application/json')) {
-                    $decoded = json_decode($raw, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $request->merge($decoded);
-                    }
-                }
-            }
-
-            // ---- Extract base64 from multiple safe keys (WAF may strip 'audio') ----
-            $b64 = $this->extractBase64AudioFromRequest($request);
-
-            Log::info('Post-merge payload snapshot', [
-                'keys'      => array_keys($request->all() ?? []),
-                'title_len' => strlen((string) $request->input('title')),
-                'b64_len'   => $b64 ? strlen($b64) : 0,
+            Log::info('Upload in', [
+                'ct'        => $request->header('Content-Type'),
+                'len'       => (int) $request->header('Content-Length'),
+                'raw_len'   => strlen($raw),
                 'has_file'  => $request->hasFile('audio'),
+                'keys'      => array_keys($request->all() ?? []),
+                'files'     => array_keys($request->allFiles() ?? []),
             ]);
 
-            // ---- Auth/profile ----
-            $artist = Auth::user()->artist;
+            // ---------- Auth/profile ----------
+            $artist = Auth::user()->artist ?? null;
             if (!$artist) {
                 return response()->json([
                     'success' => false,
@@ -112,13 +91,11 @@ class ArtistSongController extends Controller
                 ], 404);
             }
 
-            // ---- Title (optional; we’ll derive if missing) ----
+            $path  = null;
             $title = trim((string) $request->input('title', ''));
 
-            $path = null;
-
+            // ---------- Branch A: multipart file ----------
             if ($request->hasFile('audio')) {
-                // Multipart file path
                 $request->validate([
                     'audio' => 'required|file|mimes:mp3,wav,ogg,mp4|max:20480', // 20MB
                     'title' => 'nullable|string|max:255',
@@ -131,9 +108,17 @@ class ArtistSongController extends Controller
                     $title = Str::title(str_replace(['_', '-'], ' ', pathinfo($orig, PATHINFO_FILENAME)));
                     $title = trim(preg_replace('/\s+/', ' ', $title)) ?: ('Untitled ' . now()->format('Ymd_His'));
                 }
+            }
+            // ---------- Branch B: base64 (JSON / raw) ----------
+            else {
+                // 1) Try common keys from parsed input
+                $b64 = $this->extractBase64FromKnownKeys($request);
 
-            } else {
-                // Base64 path (from any accepted key)
+                // 2) If still empty, try raw body heuristics (JSON / urlencoded / plain base64)
+                if (!$b64) {
+                    $b64 = $this->extractBase64FromRaw($raw);
+                }
+
                 if (!$b64) {
                     return response()->json([
                         'success' => false,
@@ -145,10 +130,8 @@ class ArtistSongController extends Controller
                     ], 422);
                 }
 
-                // Optional: light validation of title only
-                $request->validate([
-                    'title' => 'nullable|string|max:255',
-                ]);
+                // Optional validation of title only (we’ll derive fallback if missing)
+                $request->validate(['title' => 'nullable|string|max:255']);
 
                 $path = $this->saveBase64AudioFlexible(
                     $b64,
@@ -165,7 +148,7 @@ class ArtistSongController extends Controller
                 }
             }
 
-            // ---- Persist ----
+            // ---------- Persist ----------
             $song = $artist->songs()->create([
                 'title'   => $title,
                 'mp3_url' => $path,
@@ -247,41 +230,64 @@ class ArtistSongController extends Controller
     }
 
     /**
-     * Extract base64 audio from multiple allowed keys or raw JSON.
+     * Try to read base64 from common input keys.
      */
-    private function extractBase64AudioFromRequest(Request $request): ?string
+    private function extractBase64FromKnownKeys(Request $request): ?string
     {
-        // Priority order; WAF sometimes strips a specific key like "audio"
-        $candidates = [
-            'audio',
-            'audio_b64',
-            'file',
-            'data',
-            'payload',
-        ];
-
-        foreach ($candidates as $key) {
+        foreach (['audio', 'audio_b64', 'file', 'data', 'payload'] as $key) {
             $val = $request->input($key);
             if (is_string($val) && $val !== '') {
                 return $val;
             }
         }
+        return null;
+    }
 
-        // Try raw JSON again (some proxies send text/plain)
-        $raw = $request->getContent() ?? '';
-        if ($raw !== '') {
-            $decoded = json_decode($raw, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                foreach ($candidates as $key) {
-                    if (isset($decoded[$key]) && is_string($decoded[$key]) && $decoded[$key] !== '') {
-                        return $decoded[$key];
+    /**
+     * Try to read base64 from the raw body:
+     * - JSON string (again)
+     * - x-www-form-urlencoded (parse_str)
+     * - plain base64 blob (only base64 charset)
+     * - data URI embedded in a text body
+     */
+    private function extractBase64FromRaw(string $raw): ?string
+    {
+        if ($raw === '') return null;
+
+        // JSON
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            foreach (['audio', 'audio_b64', 'file', 'data', 'payload'] as $key) {
+                if (!empty($decoded[$key]) && is_string($decoded[$key])) {
+                    return $decoded[$key];
+                }
+            }
+        }
+
+        // URL-encoded
+        if (str_contains($raw, '=') && !str_contains($raw, '{')) {
+            parse_str($raw, $arr);
+            if (is_array($arr)) {
+                foreach (['audio', 'audio_b64', 'file', 'data', 'payload'] as $key) {
+                    if (!empty($arr[$key]) && is_string($arr[$key])) {
+                        return $arr[$key];
                     }
                 }
             }
         }
 
+        // Data URI inside raw text
+        if (preg_match('/data:audio\/[\w.+-]+;base64,[A-Za-z0-9+\/=\r\n]+/', $raw, $m)) {
+            return $m[0];
+        }
+
+        // Plain base64 blob (heuristic: long base64-only string)
+        if (preg_match('/^[A-Za-z0-9+\/=\s]{100,}$/', $raw)) {
+            return trim($raw);
+        }
+
         return null;
-    }
+        }
 
     /**
      * Save base64 to public disk and return relative path.
