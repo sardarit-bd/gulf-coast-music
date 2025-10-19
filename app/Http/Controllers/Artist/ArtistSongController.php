@@ -14,8 +14,6 @@ class ArtistSongController extends Controller
 {
     /**
      * GET /api/artist/songs
-     * List all songs for the authenticated artist (paginated).
-     * Query params: ?page=1&per_page=15
      */
     public function index(Request $request)
     {
@@ -36,11 +34,8 @@ class ArtistSongController extends Controller
             $perPage = (int) ($request->query('per_page', 15));
             $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 15;
 
-            $songs = $artist->songs()
-                ->latest('id')
-                ->paginate($perPage);
+            $songs = $artist->songs()->latest('id')->paginate($perPage);
 
-            // Append public URLs
             $songs->getCollection()->transform(function (ArtistSong $song) {
                 $song->file_url = $song->mp3_url ? Storage::url($song->mp3_url) : null;
                 return $song;
@@ -67,42 +62,46 @@ class ArtistSongController extends Controller
 
     /**
      * POST /api/artist/songs
-     * Accepts EITHER:
-     * - multipart/form-data:   audio=<file>, title=<string?>
-     * - application/json:      { "audio": "<base64 or data URI>", "title": "<string?>" }
+     * Accepts:
+     *  - multipart/form-data: audio=<file>, title=<string?>
+     *  - application/json: audio|audio_b64|file|data|payload = base64 (with/without data URI), title=<string?>
      */
     public function store(Request $request)
     {
         try {
-            // --- Diagnostics about the incoming request ---
-            $rawLen = strlen($request->getContent() ?? '');
+            // ---- Snapshots ----
+            $raw = $request->getContent() ?? '';
             Log::info('Incoming upload snapshot', [
                 'content_type' => $request->header('Content-Type'),
                 'content_len'  => (int) $request->header('Content-Length'),
-                'raw_len'      => $rawLen,
+                'raw_len'      => strlen($raw),
                 'keys_before'  => array_keys($request->all() ?? []),
+                'has_file'     => $request->hasFile('audio'),
+                'files_keys'   => array_keys($request->allFiles() ?? []),
             ]);
 
-            // --- Fallback: manually parse JSON if Laravel didn't (e.g., text/plain) ---
-            if (empty($request->all())) {
+            // ---- Robust merge for text/plain / partially stripped JSON ----
+            if (empty($request->all()) || (!$request->hasFile('audio') && !$request->hasAny(['audio','audio_b64','file','data','payload']))) {
                 $ct = $request->header('Content-Type', '');
                 if (str_contains($ct, 'text/plain') || str_contains($ct, 'application/json')) {
-                    $decoded = json_decode($request->getContent(), true);
+                    $decoded = json_decode($raw, true);
                     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                         $request->merge($decoded);
                     }
                 }
             }
 
+            // ---- Extract base64 from multiple safe keys (WAF may strip 'audio') ----
+            $b64 = $this->extractBase64AudioFromRequest($request);
+
             Log::info('Post-merge payload snapshot', [
-                'keys'       => array_keys($request->all() ?? []),
-                'title_len'  => strlen((string) $request->input('title')),
-                'audio_len'  => strlen((string) $request->input('audio')),
-                'has_file'   => $request->hasFile('audio'),
-                'files_keys' => array_keys($request->allFiles() ?? []),
+                'keys'      => array_keys($request->all() ?? []),
+                'title_len' => strlen((string) $request->input('title')),
+                'b64_len'   => $b64 ? strlen($b64) : 0,
+                'has_file'  => $request->hasFile('audio'),
             ]);
 
-            // --- Auth / profile check ---
+            // ---- Auth/profile ----
             $artist = Auth::user()->artist;
             if (!$artist) {
                 return response()->json([
@@ -113,76 +112,65 @@ class ArtistSongController extends Controller
                 ], 404);
             }
 
-            // --- Accept either multipart file OR base64 string ---
-            $path  = null;
+            // ---- Title (optional; we’ll derive if missing) ----
             $title = trim((string) $request->input('title', ''));
 
+            $path = null;
+
             if ($request->hasFile('audio')) {
-                // Multipart branch
+                // Multipart file path
                 $request->validate([
                     'audio' => 'required|file|mimes:mp3,wav,ogg,mp4|max:20480', // 20MB
                     'title' => 'nullable|string|max:255',
                 ]);
 
-                $path = $request->file('audio')
-                                ->store("artist/{$artist->id}/songs", 'public');
+                $path = $request->file('audio')->store("artist/{$artist->id}/songs", 'public');
 
-                // Derive title from original filename if missing
                 if ($title === '') {
                     $orig  = $request->file('audio')->getClientOriginalName();
                     $title = Str::title(str_replace(['_', '-'], ' ', pathinfo($orig, PATHINFO_FILENAME)));
-                    $title = trim(preg_replace('/\s+/', ' ', $title));
-                    if ($title === '') {
-                        $title = 'Untitled ' . now()->format('Ymd_His');
-                    }
+                    $title = trim(preg_replace('/\s+/', ' ', $title)) ?: ('Untitled ' . now()->format('Ymd_His'));
                 }
 
             } else {
-                // Base64 branch
-                $request->validate([
-                    'audio' => 'required|string',      // base64 string (with or without data URI)
-                    'title' => 'nullable|string|max:255',
-                ]);
-
-                $audioB64 = (string) $request->input('audio');
-                if ($audioB64 === '') {
+                // Base64 path (from any accepted key)
+                if (!$b64) {
                     return response()->json([
                         'success' => false,
                         'status'  => 422,
                         'error'   => 'Validation failed',
                         'message' => [
-                            'audio' => ['Provide either a multipart file named "audio" or a base64 string in "audio".']
+                            'audio' => ['Provide either a multipart file named "audio" or a base64 string in one of: audio, audio_b64, file, data, payload.']
                         ],
                     ], 422);
                 }
 
+                // Optional: light validation of title only
+                $request->validate([
+                    'title' => 'nullable|string|max:255',
+                ]);
+
                 $path = $this->saveBase64AudioFlexible(
-                    $audioB64,
+                    $b64,
                     "artist/{$artist->id}/songs",
                     20 * 1024 * 1024 // 20MB
                 );
 
-                // Derive title if still empty: try optional filename/name fields, else from path
                 if ($title === '') {
                     $fallbackName = $request->input('filename')
                         ?? $request->input('name')
                         ?? basename($path);
-
                     $title = Str::title(str_replace(['_', '-', '.mp3', '.wav', '.ogg', '.mp4'], ' ', $fallbackName));
-                    $title = trim(preg_replace('/\s+/', ' ', $title));
-                    if ($title === '') {
-                        $title = 'Untitled ' . now()->format('Ymd_His');
-                    }
+                    $title = trim(preg_replace('/\s+/', ' ', $title)) ?: ('Untitled ' . now()->format('Ymd_His'));
                 }
             }
 
-            // --- Persist DB row ---
+            // ---- Persist ----
             $song = $artist->songs()->create([
                 'title'   => $title,
-                'mp3_url' => $path, // relative path
+                'mp3_url' => $path,
             ]);
 
-            // Public URL for frontend playback
             $song->file_url = Storage::url($song->mp3_url);
 
             return response()->json([
@@ -200,9 +188,7 @@ class ArtistSongController extends Controller
                 'message' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Song store error: '.$e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('Song store error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'status'  => 500,
@@ -214,7 +200,6 @@ class ArtistSongController extends Controller
 
     /**
      * DELETE /api/artist/songs/{song}
-     * Delete a song (and its stored file) owned by the authenticated artist.
      */
     public function destroy(ArtistSong $song)
     {
@@ -238,7 +223,6 @@ class ArtistSongController extends Controller
                 ], 403);
             }
 
-            // Delete stored file if present
             if (!empty($song->mp3_url) && Storage::disk('public')->exists($song->mp3_url)) {
                 Storage::disk('public')->delete($song->mp3_url);
             }
@@ -263,39 +247,70 @@ class ArtistSongController extends Controller
     }
 
     /**
-     * Save base64 audio to the public disk and return the relative path.
-     * Accepts data URIs (e.g., data:audio/mp3;base64,...) or raw base64 strings.
+     * Extract base64 audio from multiple allowed keys or raw JSON.
+     */
+    private function extractBase64AudioFromRequest(Request $request): ?string
+    {
+        // Priority order; WAF sometimes strips a specific key like "audio"
+        $candidates = [
+            'audio',
+            'audio_b64',
+            'file',
+            'data',
+            'payload',
+        ];
+
+        foreach ($candidates as $key) {
+            $val = $request->input($key);
+            if (is_string($val) && $val !== '') {
+                return $val;
+            }
+        }
+
+        // Try raw JSON again (some proxies send text/plain)
+        $raw = $request->getContent() ?? '';
+        if ($raw !== '') {
+            $decoded = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                foreach ($candidates as $key) {
+                    if (isset($decoded[$key]) && is_string($decoded[$key]) && $decoded[$key] !== '') {
+                        return $decoded[$key];
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Save base64 to public disk and return relative path.
      */
     private function saveBase64AudioFlexible(string $audio, string $folder, int $maxBytes = 20971520): string
     {
-        // Accept both "data:audio/mp3;base64,..." and raw base64 "AAAA..."
         $ext = 'mp3';
         if (preg_match('/^data:audio\/([\w.+-]+);base64,/', $audio, $m)) {
-            $ext  = strtolower($m[1]); // mp3, mpeg, wav, ogg, mp4, x-wav, etc.
+            $ext  = strtolower($m[1]);
             $data = substr($audio, strpos($audio, ',') + 1);
         } else {
             $data = $audio;
         }
 
-        // Normalize and decode
         $data    = str_replace(' ', '+', $data);
         $decoded = base64_decode($data, true);
         if ($decoded === false) {
             throw new \Exception('Base64 decode failed for audio payload.');
         }
 
-        // Enforce size limit (decoded bytes)
         if (strlen($decoded) > $maxBytes) {
             throw new \Exception('Audio exceeds maximum allowed size.');
         }
 
-        // Normalize some extensions
         $ext = str_ireplace(['mpeg', 'x-wav'], ['mp3', 'wav'], $ext);
         if (!in_array($ext, ['mp3', 'wav', 'ogg', 'mp4'])) {
             $ext = 'mp3';
         }
 
-        // Ensure folder exists
         if (!Storage::disk('public')->exists($folder)) {
             Storage::disk('public')->makeDirectory($folder);
         }
@@ -305,6 +320,6 @@ class ArtistSongController extends Controller
 
         Storage::disk('public')->put($path, $decoded);
 
-        return $path; // relative path for DB
+        return $path;
     }
 }
