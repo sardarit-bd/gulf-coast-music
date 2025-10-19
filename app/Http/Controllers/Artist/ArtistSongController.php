@@ -90,13 +90,13 @@ class ArtistSongController extends Controller
 
             // Store file to public disk, keep relative path in DB
             $path = $request->file('audio')->store("artist/{$artist->id}/songs", 'public');
+            Log::info('Song audio uploaded', ['user_id' => Auth::id(), 'path' => $path]);
 
             $song = $artist->songs()->create([
                 'title'   => $validated['title'],
                 'mp3_url' => $path,
             ]);
 
-             Log::info('Song store request received', ['Song' => $song]);
 
             $song->file_url = Storage::url($song->mp3_url);
 
