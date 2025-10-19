@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Str;
 
 class ArtistSongController extends Controller
 {
@@ -124,10 +125,6 @@ class ArtistSongController extends Controller
     //     }
     // }
 
-
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 public function store(Request $request)
 {
