@@ -136,7 +136,7 @@ class ArtistSongController extends Controller
                 $path = $this->saveBase64AudioFlexible(
                     $b64,
                     "artist/{$artist->id}/songs",
-                    20 * 1024 * 1024 // 20MB
+                    20 * 1024 * 1024
                 );
 
                 if ($title === '') {
